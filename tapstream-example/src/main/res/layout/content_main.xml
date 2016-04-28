@@ -10,7 +10,7 @@
     android:paddingTop="@dimen/activity_vertical_margin"
     app:layout_behavior="@string/appbar_scrolling_view_behavior"
     tools:context="com.tapstream.sdk.example.MainActivity"
-    tools:showIn="@layout/activity_main">
+                tools:showIn="@layout/activity_main">
 
     <TextView
         android:layout_width="wrap_content"
@@ -18,7 +18,45 @@
         android:textAppearance="?android:attr/textAppearanceLarge"
         android:text="@string/main_header"
         android:id="@+id/textView"
-        android:layout_marginTop="80dp"
         android:layout_alignParentTop="true"
-        android:layout_centerHorizontal="true" />
+        android:layout_centerHorizontal="true"/>
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Fire Event With Custom Params"
+        android:id="@+id/buttonFireWithCustomParams"
+        android:layout_marginTop="47dp"
+        android:layout_below="@+id/textView"
+        android:layout_alignRight="@+id/textView"
+        android:layout_alignEnd="@+id/textView"/>
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Fire Purchase Event"
+        android:id="@+id/buttonFirePurchase"
+        android:layout_below="@+id/buttonFireWithCustomParams"
+        android:layout_centerHorizontal="true"/>
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Fire Purchase Event (No Price)"
+        android:id="@+id/buttonFirePurchaseNoPrice"
+        android:layout_below="@+id/buttonFirePurchase"
+        android:layout_centerHorizontal="true"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:id="@+id/textStatus"
+        android:layout_alignParentBottom="true"
+        android:layout_alignLeft="@+id/buttonFirePurchaseNoPrice"
+        android:layout_alignStart="@+id/buttonFirePurchaseNoPrice"
+        android:layout_marginBottom="137dp"
+        android:layout_alignRight="@+id/buttonFirePurchaseNoPrice"
+        android:layout_alignEnd="@+id/buttonFirePurchaseNoPrice"/>
+
 </RelativeLayout>

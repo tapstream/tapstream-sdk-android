@@ -16,24 +16,26 @@ public class Logging {
 		}
 	}
 
-	private static Logger logger = new DefaultLogger();
+	private static Logger logger = null;
 
 	synchronized public static void setLogger(Logger logger) {
 		Logging.logger = logger;
 	}
 
-	synchronized public static void log(int logLevel, String format, Object... args) {
-		if (logger != null) {
-			try {
-				String msg = format == null ? null : String.format(format, args);
-				logger.log(logLevel, msg);
-			} catch (Exception e){
-				logger.log(ERROR, "Unhandled exception in the logging system. " +
-						"This should never happen.");
-			}
+    synchronized public static boolean isConfigured(){
+        return logger != null;
+    }
 
+	synchronized public static void log(int logLevel, String format, Object... args) {
+		if (logger == null){
+			logger = new DefaultLogger();
+		}
+		try {
+			String msg = format == null ? null : String.format(format, args);
+			logger.log(logLevel, msg);
+		} catch (Exception e){
+			logger.log(ERROR, "Unhandled exception in the logging system. " +
+					"This should never happen.");
 		}
 	}
-
-
 }

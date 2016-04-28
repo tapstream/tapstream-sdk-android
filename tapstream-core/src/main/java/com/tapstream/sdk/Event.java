@@ -170,8 +170,8 @@ public class Event {
 	 * @param key	parameter key
 	 * @param value	parameter value
      */
-	public void setCustomParameter(String key, String value){
-		this.customParams.put(key, value);
+	public void setCustomParameter(String key, Object value){
+		this.customParams.put(key, value.toString());
 	}
 
 	/**
