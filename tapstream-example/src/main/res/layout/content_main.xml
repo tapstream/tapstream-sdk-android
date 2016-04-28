@@ -59,4 +59,20 @@
         android:layout_alignRight="@+id/buttonFirePurchaseNoPrice"
         android:layout_alignEnd="@+id/buttonFirePurchaseNoPrice"/>
 
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Clear State"
+        android:id="@+id/buttonClearState"
+        android:layout_below="@+id/buttonLookupTimeline"
+        android:layout_centerHorizontal="true"/>
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Lookup Timeline"
+        android:id="@+id/buttonLookupTimeline"
+        android:layout_below="@+id/buttonFirePurchaseNoPrice"
+        android:layout_centerHorizontal="true"/>
+
 </RelativeLayout>

@@ -153,11 +153,11 @@ public class HttpApiClient implements ApiClient {
 		Callable<AdvertisingID> adIdFetcher = platform.getAdIdFetcher();
 
 		if (adIdFetcher != null && config.getCollectAdvertisingId()){
-			AdvertisingID advertisingIdInfo = null;
+			AdvertisingID advertisingIdInfo;
 			try{
 				advertisingIdInfo = adIdFetcher.call();
 			} catch (Exception e){
-				Logging.log(Logging.WARN, "Advertising ID could not be collected. Is Google Play Services installed?");
+				advertisingIdInfo = null;
 			}
 
 			if (advertisingIdInfo != null && advertisingIdInfo.isValid()){

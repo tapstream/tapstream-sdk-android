@@ -1,10 +1,9 @@
 package com.tapstream.sdk.example;
 
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
@@ -16,6 +15,12 @@ import com.tapstream.sdk.Config;
 import com.tapstream.sdk.Event;
 import com.tapstream.sdk.EventApiResponse;
 import com.tapstream.sdk.Tapstream;
+import com.tapstream.sdk.TimelineApiResponse;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.util.Locale;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -56,6 +61,52 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+    private void clearPrefs(String key){
+        SharedPreferences.Editor editor = getSharedPreferences(key, 0).edit();
+        editor.clear();
+        editor.apply();
+    }
+
+    private void clearState(){
+        clearPrefs("TapstreamSDKFiredEvents");
+        clearPrefs("TapstreamSDKUUID");
+        clearPrefs("TapstreamWOMRewards");
+    }
+
+    private void lookupTimeline(){
+        statusView.setText("Working!");
+
+        final long startTime = System.currentTimeMillis();
+        ApiFuture<TimelineApiResponse> timelineFuture = Tapstream.getInstance().lookupTimeline();
+        timelineFuture.setCallback(new Callback<TimelineApiResponse>(){
+
+            @Override
+            public void success(TimelineApiResponse result) {
+                final long timeDelta = System.currentTimeMillis() - startTime;
+
+                if (result.isEmpty()){
+                    uiHandler.post(new TextUpdater(statusView, "timeline was empty"));
+                } else {
+                    try {
+                        JSONObject timelineJson = result.parse();
+                        int numHits = timelineJson.getJSONArray("hits").length();
+                        int numEvents = timelineJson.getJSONArray("events").length();
+                        String msg = String.format(Locale.US, "Timeline: %d hits, %d events (%dms)",
+                                numHits, numEvents, timeDelta);
+                        uiHandler.post(new TextUpdater(statusView, msg));
+                    } catch (JSONException e){
+                        uiHandler.post(new TextUpdater(statusView, "Failed to parse timeline response"));
+                    }
+                }
+            }
+
+            @Override
+            public void error(Throwable reason) {
+                uiHandler.post(new TextUpdater(statusView, "error getting timeline"));
+            }
+        });
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -63,15 +114,6 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
-            }
-        });
 
         uiHandler = new Handler(Looper.getMainLooper());
         statusView = (TextView)findViewById(R.id.textStatus);
@@ -109,6 +151,23 @@ public class MainActivity extends AppCompatActivity {
                 handleApiResponse(Tapstream.getInstance().fireEvent(new Event("3da541559918a", "com.myapp.coinpack100", 1)));
             }
         });
+
+        findViewById(R.id.buttonClearState).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                clearState();
+                statusView.setText("State cleared");
+            }
+        });
+
+        findViewById(R.id.buttonLookupTimeline).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                lookupTimeline();
+            }
+        });
+
+        lookupTimeline();
 
     }
 
