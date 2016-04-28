@@ -1,0 +1,14 @@
+language: android
+android:
+  components:
+    - tools
+
+    # The BuildTools version used by your project
+    - build-tools-23.0.3
+
+    # The SDK version used to compile your project
+    - android-23
+
+    # Extra android repos
+    - extra-android-m2repository
+
