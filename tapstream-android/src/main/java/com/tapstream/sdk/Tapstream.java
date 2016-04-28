@@ -15,7 +15,9 @@ public class Tapstream implements AndroidApiClient {
 	private ApiClient client;
 
 	static {
-		Logging.setLogger(new AndroidLogger());
+		if (!Logging.isConfigured()) {
+			Logging.setLogger(new AndroidLogger());
+		}
 	}
 
 	public interface ClientBuilder {
