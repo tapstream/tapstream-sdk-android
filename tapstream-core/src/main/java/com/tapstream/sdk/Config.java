@@ -45,8 +45,8 @@ public class Config {
 		return developerSecret;
 	}
 
-	public void addGlobalEventParameter(String name, String value){
-		globalEventParams.put(name, value);
+	public void setGlobalEventParameter(String name, Object value){
+		globalEventParams.put(name, value.toString());
 	}
 
 	public Event.Params getGlobalEventParams(){

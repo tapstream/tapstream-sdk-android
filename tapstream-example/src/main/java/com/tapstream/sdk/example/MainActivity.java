@@ -119,7 +119,7 @@ public class MainActivity extends AppCompatActivity {
         statusView = (TextView)findViewById(R.id.textStatus);
 
         Config config = new Config("sdktest", "YGP2pezGTI6ec48uti4o1w");
-        config.addGlobalEventParameter("user_id", "92429d82a41e");
+        config.setGlobalEventParameter("user_id", "92429d82a41e");
 
         Tapstream.create(getApplication(), config);
 
