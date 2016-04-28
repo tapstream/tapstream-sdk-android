@@ -36,3 +36,6 @@ before_script:
 
 script:
   - ./gradlew connectedCheck
+
+licenses:
+    - '.+'
