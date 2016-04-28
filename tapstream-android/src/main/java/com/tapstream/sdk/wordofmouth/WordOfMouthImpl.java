@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
@@ -11,7 +12,9 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.PopupWindow;
 
+import com.tapstream.sdk.Logging;
 import com.tapstream.sdk.Platform;
+import com.tapstream.sdk.Tapstream;
 
 
 /**
@@ -37,7 +40,7 @@ public class WordOfMouthImpl implements WordOfMouth{
 
     @Override
     public boolean isConsumed(Reward reward){
-        return reward.isConsumed(platform);
+        return platform.isConsumed(reward);
     }
 
     public void showOffer(final Activity mainActivity, View parent, final Offer o){
@@ -51,7 +54,16 @@ public class WordOfMouthImpl implements WordOfMouth{
          *   - WebViewClient sends intent (given mainActivity)
          */
         final Context applicationContext = mainActivity.getApplicationContext();
-        WebView wv = new WebView(applicationContext);
+        WebView wv;
+        try {
+            wv = new WebView(applicationContext);
+        }catch(RuntimeException e){
+            Logging.log(Logging.ERROR, "RuntimeException thrown creating WebView. This probably" +
+                    "means you ran showOffer on a non-ui thread. Stack trace: %s",
+                    Log.getStackTraceString(e));
+            throw e;
+        }
+
         final PopupWindow window = new PopupWindow(
             wv,
             ViewGroup.LayoutParams.MATCH_PARENT,

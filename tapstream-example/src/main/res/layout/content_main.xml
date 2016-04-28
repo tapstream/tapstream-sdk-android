@@ -2,6 +2,7 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/content_main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:paddingBottom="@dimen/activity_vertical_margin"
@@ -26,10 +27,9 @@
         android:layout_height="wrap_content"
         android:text="Fire Event With Custom Params"
         android:id="@+id/buttonFireWithCustomParams"
-        android:layout_marginTop="47dp"
+        android:layout_marginTop="10dp"
         android:layout_below="@+id/textView"
-        android:layout_alignRight="@+id/textView"
-        android:layout_alignEnd="@+id/textView"/>
+        android:layout_alignParentLeft="true"/>
 
     <Button
         android:layout_width="wrap_content"
@@ -37,7 +37,7 @@
         android:text="Fire Purchase Event"
         android:id="@+id/buttonFirePurchase"
         android:layout_below="@+id/buttonFireWithCustomParams"
-        android:layout_centerHorizontal="true"/>
+        android:layout_alignParentLeft="true"/>
 
     <Button
         android:layout_width="wrap_content"
@@ -45,27 +45,7 @@
         android:text="Fire Purchase Event (No Price)"
         android:id="@+id/buttonFirePurchaseNoPrice"
         android:layout_below="@+id/buttonFirePurchase"
-        android:layout_centerHorizontal="true"/>
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceLarge"
-        android:id="@+id/textStatus"
-        android:layout_alignParentBottom="true"
-        android:layout_alignLeft="@+id/buttonFirePurchaseNoPrice"
-        android:layout_alignStart="@+id/buttonFirePurchaseNoPrice"
-        android:layout_marginBottom="137dp"
-        android:layout_alignRight="@+id/buttonFirePurchaseNoPrice"
-        android:layout_alignEnd="@+id/buttonFirePurchaseNoPrice"/>
-
-    <Button
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Clear State"
-        android:id="@+id/buttonClearState"
-        android:layout_below="@+id/buttonLookupTimeline"
-        android:layout_centerHorizontal="true"/>
+        android:layout_alignParentLeft="true"/>
 
     <Button
         android:layout_width="wrap_content"
@@ -73,6 +53,44 @@
         android:text="Lookup Timeline"
         android:id="@+id/buttonLookupTimeline"
         android:layout_below="@+id/buttonFirePurchaseNoPrice"
-        android:layout_centerHorizontal="true"/>
+        android:layout_alignParentLeft="true"/>
 
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Lookup WOM Offer (test123)"
+        android:id="@+id/buttonLookupOffer"
+        android:layout_below="@+id/buttonLookupTimeline"
+        android:layout_alignParentLeft="true"/>
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Lookup WOM Rewards"
+        android:id="@+id/buttonLookupRewards"
+        android:layout_below="@+id/buttonLookupOffer"
+        android:layout_alignParentLeft="true"/>
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Clear State"
+        android:id="@+id/buttonClearState"
+        android:layout_below="@+id/buttonLookupRewards"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentRight="true"
+        />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:id="@+id/textStatus"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentRight="true"
+        android:layout_below="@+id/buttonClearState"
+        android:layout_marginTop="10dp"
+        android:layout_marginBottom="40dp" />
 </RelativeLayout>

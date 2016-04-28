@@ -30,7 +30,7 @@ public interface Platform {
 	
 	String getReferrer();
 
-	Integer getCountForReward(Reward reward);
+	boolean isConsumed(Reward reward);
 
 	void consumeReward(Reward reward);
 

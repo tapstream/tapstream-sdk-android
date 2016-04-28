@@ -348,7 +348,7 @@ public class HttpApiClient implements ApiClient {
 
 					for (int ii = 0; ii < responseObject.length(); ii++) {
 						Reward reward = Reward.fromApiResponse(responseObject.getJSONObject(ii));
-						if (!reward.isConsumed(platform)) {
+						if (!platform.isConsumed(reward)) {
 							rewards.add(reward);
 						}
 					}

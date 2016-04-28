@@ -88,9 +88,9 @@ public class TestAndroidPlatform extends BaseAndroidTest {
 
         assertThat(platform.getCountForReward(r), is(0));
 
-        r.consume(platform);
-        r.consume(platform);
-        r.consume(platform);
+        platform.consumeReward(r);
+        platform.consumeReward(r);
+        platform.consumeReward(r);
 
         assertThat(platform.getCountForReward(r), is(3));
     }

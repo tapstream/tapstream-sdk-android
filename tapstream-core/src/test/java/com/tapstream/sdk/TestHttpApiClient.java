@@ -371,7 +371,7 @@ public class TestHttpApiClient {
         List<Reward> rewards = apiClient.getWordOfMouthRewardList().get().getRewards();
         assertThat(rewards.size(), is(1));
 
-        when(platform.getCountForReward((Reward) any())).thenReturn(1);
+        when(platform.isConsumed((Reward) any())).thenReturn(true);
 
         rewards = apiClient.getWordOfMouthRewardList().get().getRewards();
         assertThat(rewards.size(), is(0));

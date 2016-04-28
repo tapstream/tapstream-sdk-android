@@ -133,11 +133,16 @@ class AndroidPlatform implements Platform {
 		return prefs.getString("referrer", null);
 	}
 
-
-	@Override
 	synchronized public Integer getCountForReward(Reward reward){
 		SharedPreferences prefs = app.getApplicationContext().getSharedPreferences(WOM_REWARDS_KEY, Context.MODE_PRIVATE);
 		return prefs.getInt(Integer.toString(reward.getOfferId()), 0);
+	}
+
+	@Override
+	synchronized public boolean isConsumed(Reward reward){
+		int rewardCount = reward.getInstallCount() / reward.getMinimumInstalls();
+		int consumed = this.getCountForReward(reward);
+		return consumed >= rewardCount;
 	}
 
 	@Override
