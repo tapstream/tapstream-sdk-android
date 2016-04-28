@@ -19,10 +19,13 @@ public class TestAdvertisingId extends BaseAndroidTest {
     @Test
     public void testFetcher() throws Exception {
         Assume.assumeTrue(Build.VERSION.SDK_INT >= 17);
-        AdvertisingIdFetcher fetcher = new AdvertisingIdFetcher(app);
-        AdvertisingID id = fetcher.call();
-        assertThat(id, notNullValue());
-        assertThat(id.getId(), not(isEmptyOrNullString()));
-        assertThat(id.isLimitAdTracking(), is(false));
+        Class<?> clientCls = Class.forName("com.google.android.gms.ads.identifier.AdvertisingIdClient");
+        if(clientCls != null) {
+            AdvertisingIdFetcher fetcher = new AdvertisingIdFetcher(app);
+            AdvertisingID id = fetcher.call();
+            assertThat(id, notNullValue());
+            assertThat(id.getId(), not(isEmptyOrNullString()));
+            assertThat(id.isLimitAdTracking(), is(false));
+        }
     }
 }

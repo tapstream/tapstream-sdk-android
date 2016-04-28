@@ -5,6 +5,8 @@ env:
     - MALLOC_ARENA_MAX=2
     # wait up to 10 minutes for adb to connect to emulator
     - ADB_INSTALL_TIMEOUT=10
+  matrix:
+    - ANDROID_TARGET=21 ANDROID_ABI=armeabi-v7a
 
 android:
   components:
@@ -23,13 +25,13 @@ android:
     - extra-android-m2repository
     - extra-google-m2repository
 
-    # Emulator image
+    # Emulator images
     - sys-img-armeabi-v7a-android-21
 
 before_script:
   - android list target
   - ./gradlew assemble lint
-  - echo no | android create avd --force -n test -t android-21 --abi armeabi-v7a
+  - echo no | android create avd --force -n test -t $ANDROID_TARGET --abi $ANDROID_ABI
   - emulator -avd test -no-skin -no-audio -no-window &
   - android-wait-for-emulator
   - adb shell input keyevent 82 &
