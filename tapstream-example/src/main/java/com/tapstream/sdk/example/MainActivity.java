@@ -143,11 +143,11 @@ public class MainActivity extends AppCompatActivity {
 
     private void lookupRewards() {
         statusView.setText("Working!");
-        final WordOfMouth wom = Tapstream.getInstance().getWordOfMouth();
         ApiFuture<RewardApiResponse> resp = Tapstream.getInstance().getWordOfMouthRewardList();
         resp.setCallback(new LoggingCallback<RewardApiResponse>() {
             @Override
             public void success(RewardApiResponse result) {
+                WordOfMouth wom = Tapstream.getInstance().getWordOfMouth();
                 List<Reward> rewards = result.getRewards();
                 StringBuilder sb = new StringBuilder("Success: ")
                     .append(rewards.size())

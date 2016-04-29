@@ -3,6 +3,9 @@ package com.tapstream.sdk;
 import android.os.Build;
 import android.support.test.runner.AndroidJUnit4;
 
+import com.google.android.gms.ads.identifier.AdvertisingIdClient;
+import com.google.android.gms.common.GooglePlayServicesNotAvailableException;
+
 import org.junit.Assume;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -19,13 +22,13 @@ public class TestAdvertisingId extends BaseAndroidTest {
     @Test
     public void testFetcher() throws Exception {
         Assume.assumeTrue(Build.VERSION.SDK_INT >= 17);
-        Class<?> clientCls = Class.forName("com.google.android.gms.ads.identifier.AdvertisingIdClient");
-        if(clientCls != null) {
+        try {
+            String expectedId = AdvertisingIdClient.getAdvertisingIdInfo(app.getApplicationContext()).getId();
             AdvertisingIdFetcher fetcher = new AdvertisingIdFetcher(app);
             AdvertisingID id = fetcher.call();
             assertThat(id, notNullValue());
-            assertThat(id.getId(), not(isEmptyOrNullString()));
+            assertThat(id.getId(), is(expectedId));
             assertThat(id.isLimitAdTracking(), is(false));
-        }
+        }catch(GooglePlayServicesNotAvailableException e){}
     }
 }
