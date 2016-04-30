@@ -1,10 +1,9 @@
 package com.tapstream.sdk.example;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Looper;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
@@ -29,16 +28,16 @@ import org.json.JSONObject;
 import java.util.List;
 import java.util.Locale;
 
+
 public class MainActivity extends AppCompatActivity {
 
-    private Handler uiHandler;
     private TextView statusView;
 
     private abstract class LoggingCallback<T> implements Callback<T> {
         @Override
         public void error(Throwable reason) {
             String msg = "Failure: " + reason.getMessage();
-            uiHandler.post(new TextUpdater(statusView, msg));
+            runOnUiThread(new TextUpdater(statusView, msg));
         }
     }
 
@@ -59,13 +58,19 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void handleApiResponse(ApiFuture<EventApiResponse> responseFuture){
-        uiHandler.post(new TextUpdater(statusView, "Working!"));
+        runOnUiThread(new TextUpdater(statusView, "Working!"));
 
         responseFuture.setCallback(new LoggingCallback<EventApiResponse>() {
             @Override
             public void success(EventApiResponse result) {
                 String msg = "Success: " + result.getHttpResponse().getStatus();
-                uiHandler.post(new TextUpdater(statusView, msg));
+                runOnUiThread(new TextUpdater(statusView, msg));
+            }
+
+            @Override
+            public void error(Throwable reason) {
+                String msg = "Failure: " + reason.toString();
+                runOnUiThread(new TextUpdater(statusView, msg));
             }
         });
     }
@@ -94,7 +99,7 @@ public class MainActivity extends AppCompatActivity {
                 final long timeDelta = System.currentTimeMillis() - startTime;
 
                 if (result.isEmpty()){
-                    uiHandler.post(new TextUpdater(statusView, "timeline was empty"));
+                    runOnUiThread(new TextUpdater(statusView, "timeline was empty"));
                 } else {
                     try {
                         JSONObject timelineJson = result.parse();
@@ -102,22 +107,22 @@ public class MainActivity extends AppCompatActivity {
                         int numEvents = timelineJson.getJSONArray("events").length();
                         String msg = String.format(Locale.US, "Timeline: %d hits, %d events (%dms)",
                                 numHits, numEvents, timeDelta);
-                        uiHandler.post(new TextUpdater(statusView, msg));
+                        runOnUiThread(new TextUpdater(statusView, msg));
                     } catch (JSONException e){
-                        uiHandler.post(new TextUpdater(statusView, "Failed to parse timeline response"));
+                        runOnUiThread(new TextUpdater(statusView, "Failed to parse timeline response"));
                     }
                 }
             }
 
             @Override
             public void error(Throwable reason) {
-                uiHandler.post(new TextUpdater(statusView, "error getting timeline"));
+                runOnUiThread(new TextUpdater(statusView, "error getting timeline"));
             }
         });
     }
 
 
-    private void lookupOffer(){
+    public void onClickLookupOffer(View view){
         statusView.setText("Working!");
         String insertionPoint = "test123";
         ApiFuture<OfferApiResponse> resp = Tapstream.getInstance().getWordOfMouthOffer(insertionPoint);
@@ -128,7 +133,7 @@ public class MainActivity extends AppCompatActivity {
             public void success(OfferApiResponse result) {
                 final Offer o = result.getOffer();
                 // Bounce back to UI thread to show WOM offer.
-                uiHandler.post(new Runnable() {
+                runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
                         statusView.setText("Success. Displaying offer.");
@@ -141,7 +146,7 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    private void lookupRewards() {
+    public void onClickLookupRewards(View view) {
         statusView.setText("Working!");
         ApiFuture<RewardApiResponse> resp = Tapstream.getInstance().getWordOfMouthRewardList();
         resp.setCallback(new LoggingCallback<RewardApiResponse>() {
@@ -168,11 +173,44 @@ public class MainActivity extends AppCompatActivity {
                     }
                 }
 
-                uiHandler.post(new TextUpdater(statusView, sb.toString()));
+                runOnUiThread(new TextUpdater(statusView, sb.toString()));
             }
         });
 
     }
+
+    public void onClickTestIAP(View view){
+        Intent intent = new Intent(this, PurchaseActivity.class);
+        startActivity(intent);
+    }
+
+    public void onClickLookupTimeline(View view){
+        lookupTimeline();
+    }
+
+    public void onClickFireEventWithParams(View view){
+        // Event with custom params
+        Event e = new Event("custom-event", false);
+        e.setCustomParameter("score", 15000);
+        e.setCustomParameter("skill", "easy");
+        handleApiResponse(Tapstream.getInstance().fireEvent(e));
+    }
+
+    public void onClickFirePurchaseEvent(View view){
+        // Purchase event with a price
+        handleApiResponse(Tapstream.getInstance().fireEvent(new Event("3da541559918a", "com.myapp.coinpack100", 1, 299, "USD")));
+    }
+
+    public void onClickFirePurchaseEventNoPrice(View view){
+        // Purchase event with no price
+        handleApiResponse(Tapstream.getInstance().fireEvent(new Event("3da541559918a", "com.myapp.coinpack100", 1)));
+    }
+
+    public void onClearStateClicked(View view){
+        clearState();
+        statusView.setText("State cleared");
+    }
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -182,74 +220,13 @@ public class MainActivity extends AppCompatActivity {
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        uiHandler = new Handler(Looper.getMainLooper());
         statusView = (TextView)findViewById(R.id.textStatus);
 
         Config config = new Config("sdktest", "YGP2pezGTI6ec48uti4o1w");
         config.setGlobalEventParameter("user_id", "92429d82a41e");
 
         Tapstream.create(getApplication(), config);
-
-        findViewById(R.id.buttonFireWithCustomParams).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                // Event with custom params
-                Event e = new Event("custom-event", false);
-                e.setCustomParameter("score", 15000);
-                e.setCustomParameter("skill", "easy");
-                handleApiResponse(Tapstream.getInstance().fireEvent(e));
-            }
-        });
-
-        findViewById(R.id.buttonFirePurchase).setOnClickListener(new View.OnClickListener(){
-
-            @Override
-            public void onClick(View v) {
-                // Purchase event with a price
-                handleApiResponse(Tapstream.getInstance().fireEvent(new Event("3da541559918a", "com.myapp.coinpack100", 1, 299, "USD")));
-            }
-        });
-
-
-        findViewById(R.id.buttonFirePurchaseNoPrice).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                // Purchase event with no price
-                handleApiResponse(Tapstream.getInstance().fireEvent(new Event("3da541559918a", "com.myapp.coinpack100", 1)));
-            }
-        });
-
-        findViewById(R.id.buttonClearState).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                clearState();
-                statusView.setText("State cleared");
-            }
-        });
-
-        findViewById(R.id.buttonLookupTimeline).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                lookupTimeline();
-            }
-        });
-
-        findViewById(R.id.buttonLookupOffer).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                lookupOffer();
-            }
-        });
-
-        findViewById(R.id.buttonLookupRewards).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                lookupRewards();
-            }
-        });
-
         lookupTimeline();
-
     }
 
 }

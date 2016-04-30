@@ -14,16 +14,16 @@
                 tools:showIn="@layout/activity_main">
 
     <TextView
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:textAppearance="?android:attr/textAppearanceLarge"
         android:text="@string/main_header"
         android:id="@+id/textView"
-        android:layout_alignParentTop="true"
-        android:layout_centerHorizontal="true"/>
+        android:layout_alignParentTop="true"/>
 
     <Button
-        android:layout_width="wrap_content"
+        android:onClick="onClickFireEventWithParams"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Fire Event With Custom Params"
         android:id="@+id/buttonFireWithCustomParams"
@@ -32,7 +32,8 @@
         android:layout_alignParentLeft="true"/>
 
     <Button
-        android:layout_width="wrap_content"
+        android:onClick="onClickFirePurchaseEvent"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Fire Purchase Event"
         android:id="@+id/buttonFirePurchase"
@@ -40,7 +41,8 @@
         android:layout_alignParentLeft="true"/>
 
     <Button
-        android:layout_width="wrap_content"
+        android:onClick="onClickFirePurchaseEventNoPrice"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Fire Purchase Event (No Price)"
         android:id="@+id/buttonFirePurchaseNoPrice"
@@ -48,49 +50,54 @@
         android:layout_alignParentLeft="true"/>
 
     <Button
-        android:layout_width="wrap_content"
+        android:onClick="onClickTestIAP"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Lookup Timeline"
-        android:id="@+id/buttonLookupTimeline"
-        android:layout_below="@+id/buttonFirePurchaseNoPrice"
-        android:layout_alignParentLeft="true"/>
+        android:text="Test IAP"
+        android:id="@+id/buttonIAP"
+        android:layout_below="@+id/buttonFirePurchaseNoPrice"/>
 
     <Button
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Lookup WOM Offer (test123)"
-        android:id="@+id/buttonLookupOffer"
-        android:layout_below="@+id/buttonLookupTimeline"
-        android:layout_alignParentLeft="true"/>
-
-    <Button
-        android:layout_width="wrap_content"
+        android:onClick="onClickLookupRewards"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Lookup WOM Rewards"
         android:id="@+id/buttonLookupRewards"
-        android:layout_below="@+id/buttonLookupOffer"
-        android:layout_alignParentLeft="true"/>
+        android:layout_below="@+id/buttonIAP" />
 
     <Button
-        android:layout_width="wrap_content"
+        android:onClick="onClickLookupOffer"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Lookup WOM Offer"
+        android:id="@+id/buttonLookupOffer"
+        android:layout_below="@+id/buttonLookupRewards" />
+
+    <Button
+        android:onClick="onClickLookupTimeline"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Lookup Timeline"
+        android:id="@+id/buttonLookupTimeline"
+        android:layout_below="@+id/buttonLookupOffer" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/buttonClearState"
+        android:textAlignment="center"
+        android:id="@+id/textStatus"/>
+
+    <Button
+        android:onClick="onClearStateClicked"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Clear State"
         android:id="@+id/buttonClearState"
-        android:layout_below="@+id/buttonLookupRewards"
-        android:textAppearance="?android:attr/textAppearanceLarge"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentRight="true"
-        />
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceMedium"
-        android:id="@+id/textStatus"
         android:layout_alignParentBottom="true"
         android:layout_alignParentLeft="true"
-        android:layout_alignParentRight="true"
-        android:layout_below="@+id/buttonClearState"
-        android:layout_marginTop="10dp"
-        android:layout_marginBottom="40dp" />
+        android:layout_alignParentStart="true"
+        android:layout_marginBottom="54dp"/>
+
+
 </RelativeLayout>
