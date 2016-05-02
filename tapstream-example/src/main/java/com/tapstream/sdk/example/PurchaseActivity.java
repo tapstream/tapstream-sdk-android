@@ -18,6 +18,8 @@ import android.widget.ListView;
 import android.widget.Toast;
 
 import com.android.vending.billing.IInAppBillingService;
+import com.tapstream.sdk.Event;
+import com.tapstream.sdk.Tapstream;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -28,8 +30,16 @@ public class PurchaseActivity extends AppCompatActivity {
 
     private static final String TAG = "ExamplePurchase";
 
+    public static final String MOCK_SKU_DETAILS =
+            "{\"price_amount_micros\": \"1000000\", \"title\": \"Test Purchase\", " +
+            "\"price\": \"$1.00\", \"description\": \"Test Purchase\", \"type\": \"inapp\", " +
+            "\"price_currency_code\": \"USD\", \"productId\": \"android.test.purchased\"}";
+
     public static final int BILLING_PURCHASE_REQUEST_CODE = 1001;
+
     public static final int BILLING_RESPONSE_RESULT_OK = 0;
+    public static final int BILLING_RESPONSE_RESULT_ITEM_ALREADY_OWNED = 7;
+
 
     IInAppBillingService iabService;
     ArrayAdapter<CharSequence> ownedSkuListAdapter;
@@ -44,7 +54,9 @@ public class PurchaseActivity extends AppCompatActivity {
         @Override
         public void onServiceConnected(ComponentName name,
                                        IBinder service) {
+            Log.d(TAG, "IAB Service Bound");
             iabService = IInAppBillingService.Stub.asInterface(service);
+            refreshPurchaseList();
         }
     };
 
@@ -56,15 +68,15 @@ public class PurchaseActivity extends AppCompatActivity {
 
         uiHandler = new Handler(Looper.getMainLooper());
 
-        // Bind the IAB service
-        Intent serviceIntent = new Intent("com.android.vending.billing.InAppBillingService.BIND");
-        serviceIntent.setPackage("com.android.vending");
-        bindService(serviceIntent, iabServiceConnection, Context.BIND_AUTO_CREATE);
-
         // Setup the purchased SKU list
         ListView ownedSkuList = (ListView)findViewById(R.id.listOwnedSKUs);
         ownedSkuListAdapter = new ArrayAdapter<CharSequence>(this, android.R.layout.simple_list_item_1);
         ((ListView) findViewById(R.id.listOwnedSKUs)).setAdapter(ownedSkuListAdapter);
+
+        // Bind the IAB service
+        Intent serviceIntent = new Intent("com.android.vending.billing.InAppBillingService.BIND");
+        serviceIntent.setPackage("com.android.vending");
+        bindService(serviceIntent, iabServiceConnection, Context.BIND_AUTO_CREATE);
 
     }
 
@@ -74,6 +86,40 @@ public class PurchaseActivity extends AppCompatActivity {
         if (iabService != null) {
             unbindService(iabServiceConnection);
         }
+    }
+
+
+    private void refreshPurchaseList(){
+        BackgroundWorkers.workers.submit(new Runnable() {
+            @Override
+            public void run() {
+
+                final Bundle purchases;
+
+                try {
+                    purchases = iabService.getPurchases(3, getPackageName(), "inapp", null);
+                } catch (RemoteException e) {
+                    Log.e(TAG, "Failed to get purchases", e);
+                    return;
+                }
+
+                int response = purchases.getInt("RESPONSE_CODE");
+                if (response != BILLING_RESPONSE_RESULT_OK) {
+                    Log.e(TAG, "Failed to get list purchases");
+                    return;
+                }
+
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        for (String sku : purchases.getStringArrayList("INAPP_PURCHASE_ITEM_LIST")){
+                            ownedSkuListAdapter.add(sku);
+                        }
+                    }
+                });
+
+            }
+        });
     }
 
     /**
@@ -108,14 +154,20 @@ public class PurchaseActivity extends AppCompatActivity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == BILLING_PURCHASE_REQUEST_CODE) {
-            int responseCode = data.getIntExtra("RESPONSE_CODE", 0);
-            String purchaseData = data.getStringExtra("INAPP_PURCHASE_DATA");
-            String dataSignature = data.getStringExtra("INAPP_DATA_SIGNATURE");
+            final String purchaseData = data.getStringExtra("INAPP_PURCHASE_DATA");
+            final String dataSignature = data.getStringExtra("INAPP_DATA_SIGNATURE");
 
             if (resultCode == RESULT_OK) {
                 try {
                     final JSONObject jo = new JSONObject(purchaseData);
                     final String sku = jo.getString("productId");
+
+                    Event event = new Event(
+                            purchaseData,
+                            MOCK_SKU_DETAILS,
+                            dataSignature);
+
+                    Tapstream.getInstance().fireEvent(event);
 
                     final Context ctx = this;
                     runOnUiThread(new Runnable() {
