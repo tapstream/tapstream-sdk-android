@@ -7,7 +7,7 @@ env:
     - ADB_INSTALL_TIMEOUT=10
   matrix:
     - ANDROID_TARGET=21 ANDROID_ABI=armeabi-v7a
-    - ANDROID_TARGET=10 ANDROID_ABI=armeabi
+    - ANDROID_TARGET=15 ANDROID_ABI=armeabi-v7a
 
 android:
   components:
