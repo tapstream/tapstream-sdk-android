@@ -1,5 +1,12 @@
 <resources>
     <string name="app_name">sdk-example</string>
-    <string name="title_activity_main">MainActivity</string>
+    <string name="title_activity_main">Tapstream</string>
     <string name="main_header">Tapstream Example App</string>
+
+    <string-array name="purchase_skus">
+        <item>android.test.purchased</item>
+        <item>android.test.canceled</item>
+        <item>android.test.refunded</item>
+        <item>android.test.item_unavailable</item>
+    </string-array>
 </resources>

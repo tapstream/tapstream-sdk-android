@@ -109,10 +109,8 @@ public class TestAndroidPlatform extends BaseAndroidTest {
             assertThat(aes, is(notNullValue()));
             assertThat(aes, instanceOf(ActivityCallbacks.class));
         } else {
-            // Should return a no-op implementation
             Object aes = platform.getActivityEventSource();
-            assertThat(aes, is(notNullValue()));
-            assertThat(ActivityEventSource.class == aes.getClass(), is(true));
+            assertThat(aes, is(nullValue()));
         }
     }
 }

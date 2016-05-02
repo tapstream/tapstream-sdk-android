@@ -172,7 +172,7 @@ class AndroidPlatform implements Platform {
 			Constructor<?> constructor = cls.getConstructor(Application.class);
 			return (ActivityEventSource)constructor.newInstance(app);
 		} catch(Throwable e) {
-			return new ActivityEventSource();
+			return null;
 		}
 	}
 }

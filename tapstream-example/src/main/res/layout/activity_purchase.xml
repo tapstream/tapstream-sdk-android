@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:paddingBottom="@dimen/activity_vertical_margin"
+    android:paddingLeft="@dimen/activity_horizontal_margin"
+    android:paddingRight="@dimen/activity_horizontal_margin"
+    android:paddingTop="@dimen/activity_vertical_margin"
+    tools:context="com.tapstream.sdk.example.PurchaseActivity">
+
+    <Button
+        android:onClick="onClickPurchase"
+        android:layout_width="match_parent"
+        android:layout_height="100dp"
+        android:text="Buy"
+        android:id="@+id/buttonTestPurchase"
+        android:layout_alignParentTop="true" />
+
+    <Button
+        android:id="@+id/buttonConsume"
+        android:onClick="onClickConsume"
+        android:text="Consume"
+        android:layout_width="match_parent"
+        android:layout_height="100dp"
+        android:layout_below="@id/buttonTestPurchase"/>
+
+    <TextView
+        android:id="@+id/textOwnedSKUs"
+        android:text="Owned SKUs"
+        android:layout_below="@id/buttonConsume"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="15dp"
+        android:textSize="20dp"/>
+
+    <ListView
+        android:id="@+id/listOwnedSKUs"
+        android:layout_below="@id/textOwnedSKUs"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+</RelativeLayout>
