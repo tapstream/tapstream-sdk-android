@@ -41,6 +41,11 @@ def issueTracker = 'https://github.com/tapstream/tapstream-sdk-android/issues'
 
 configure([project(':tapstream-core'), project(':tapstream-android')]) {
 
+
+    def bintrayUser = project.properties['bintrayUser'] ?: ""
+    def bintrayKey = project.properties['bintrayKey'] ?: ""
+    def gpgPass = project.properties['gpgPass'] ?: ""
+
     afterEvaluate {project ->
         project.group = 'com.tapstream.sdk'
 
