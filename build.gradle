@@ -9,7 +9,9 @@ buildscript {
     }
     dependencies {
         classpath 'com.android.tools.build:gradle:2.1.0'
-        classpath "gradle.plugin.gradle-plugins:jartest:1.0"
+        classpath 'gradle.plugin.gradle-plugins:jartest:1.0'
+        classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.6'
+        classpath 'com.github.dcendents:android-maven-gradle-plugin:1.3'
 
         // NOTE: Do not place your application dependencies here; they belong
         // in the individual module build.gradle files
@@ -17,6 +19,7 @@ buildscript {
 }
 
 apply plugin: 'idea'
+
 
 allprojects {
     repositories {
@@ -29,3 +32,95 @@ allprojects {
 task clean(type: Delete) {
     delete rootProject.buildDir
 }
+
+def siteUrl = 'https://tapstream.com/developer/android/integration/'
+def gitUrl = 'https://github.com/tapstream/tapstream-sdk-android.git'
+def gitConn = 'scm:git:git@github.com:tapstream/tapstream-sdk.git'
+def issueTracker = 'https://github.com/tapstream/tapstream-sdk-android/issues'
+
+
+configure([project(':tapstream-core'), project(':tapstream-android')]) {
+
+    afterEvaluate {project ->
+        project.group = 'com.tapstream.sdk'
+
+        project.bintray {
+            user = bintrayUser
+            key = bintrayKey
+            configurations = ['archives']
+            pkg {
+                repo = 'tapstream-oss'
+                name = 'tapstream-sdk-android'
+                userOrg = 'tapstream'
+                licenses = ['MIT']
+                vcsUrl = gitUrl
+                websiteUrl = siteUrl
+                issueTrackerUrl = issueTracker
+                labels = ['tapstream', 'sdk', 'analytics']
+                publicDownloadNumbers = true
+
+                version {
+                    name = project.version
+                    vcsTag = project.version
+
+                    gpg {
+                        sign = true
+                        passphrase = gpgPass
+                    }
+
+                    mavenCentralSync {
+                        sync = false
+                        user = 'userToken'
+                        password = 'paasword'
+                        close = '0'
+                    }
+                }
+            }
+        }
+
+        project.install {
+            repositories.mavenInstaller {
+                pom.project {
+
+                    packaging project.pomPackaging
+                    name project.pomName
+                    description project.pomDescription
+                    url siteUrl
+
+                    organization {
+                        name 'Tapstream'
+                        url 'https://tapstream.com'
+                    }
+
+                    licenses {
+                        license {
+                            name 'MIT License'
+                            url 'http://www.opensource.org/licenses/mit-license.php'
+                        }
+                    }
+                    developers {
+                        developer {
+                            id = 'adambard'
+                            name = 'Adam Bard'
+                            organization = 'Tapstream'
+                            organizationUrl = 'https://tapstream.com'
+                        }
+                        developer {
+                            id = 'nsitarz'
+                            name = 'Nick Sitarz'
+                            organization = 'Tapstream'
+                            organizationUrl = 'https://tapstream.com'
+                        }
+                    }
+                    scm {
+                        connection gitUrl
+                        developerConnection gitConn
+                        url gitConn
+
+                    }
+                }
+            }
+        }
+    }
+}
+

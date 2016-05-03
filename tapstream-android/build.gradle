@@ -1,4 +1,7 @@
 apply plugin: 'com.android.library'
+apply plugin: 'com.github.dcendents.android-maven'
+apply plugin: 'com.jfrog.bintray'
+
 
 android {
     compileSdkVersion 23
@@ -7,8 +10,8 @@ android {
     defaultConfig {
         minSdkVersion 9
         targetSdkVersion 23
-        versionCode 3
-        versionName "3.0"
+        versionCode 1
+        versionName project.version
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
 
@@ -27,6 +30,14 @@ android {
     lintOptions {
         abortOnError false
     }
+}
+
+
+ext {
+    deployable = true
+    pomPackaging = 'aar'
+    pomName = 'Tapstream Android SDK'
+    pomDescription = 'This library enables Tapstream tracking for your Android application'
 }
 
 dependencies {
@@ -50,4 +61,24 @@ dependencies {
     androidTestCompile(project(path: ':tapstream-core', configuration: 'testArtifacts')) {
         exclude group: 'org.json', module: 'json'
     }
+}
+
+task sourcesJar(type: Jar) {
+    from android.sourceSets.main.java.srcDirs
+    classifier = 'sources'
+}
+
+task javadoc(type: Javadoc) {
+    source = android.sourceSets.main.java.srcDirs
+    classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
+    classpath += configurations.compile
+}
+
+task javadocJar(type: Jar, dependsOn: javadoc) {
+    classifier = 'javadoc'
+    from javadoc.destinationDir
+}
+
+artifacts {
+    archives javadocJar, sourcesJar
 }

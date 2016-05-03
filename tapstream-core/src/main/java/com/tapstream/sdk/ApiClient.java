@@ -23,7 +23,8 @@ public interface ApiClient extends Closeable {
 	 * <a href="https://tapstream.com/developer/android/onboarding-links/">Tapstream's documentation</a>
 	 * on the subject.
 	 *
-	 * @returns An ApiFuture wrapping a TimelineApiResponse, from which a JSONObject can be parsed.
+	 * @return An ApiFuture wrapping a TimelineApiResponse, from which a {@link org.json.JSONObject}
+	 * 		can be parsed.
      */
     ApiFuture<TimelineApiResponse> lookupTimeline();
 
@@ -33,14 +34,16 @@ public interface ApiClient extends Closeable {
 	 *
 	 * @param insertionPoint The string id for this insertion point that was
 	 *                       configured in Tapstream's dashboard.
-	 * @returns An ApiFuture wrapping an OfferApiResponse
+	 * @return An ApiFuture wrapping an OfferApiResponse
 	 *
-	 * <code><pre>
+	 * <pre>
+	 * {@code
 	 *     Offer offer = apiClient
 	 *         .getWordOfMouthOffer("my-insertion-point")
 	 *         .get()
 	 *         .getOffer();
-	 * </pre></code>
+	 * }
+	 * </pre>
      */
     ApiFuture<OfferApiResponse> getWordOfMouthOffer(final String insertionPoint);
 
@@ -48,15 +51,17 @@ public interface ApiClient extends Closeable {
 	 * Queries the Word of Mouth API to retrieve a list of rewards associated
 	 * with the current user.
 	 *
-	 * @returns An ApiFuture wrapping a RewardApiResponse from which a
-	 *          List<Reward> can be obtained.
+	 * @return An ApiFuture wrapping a RewardApiResponse from which a
+	 *          {@link java.util.List} can be obtained.
 	 *
-	 * <code><pre>
+	 * <pre>
+	 * {@code
 	 *     List<Reward> rewards = apiClient
 	 *         .getWordOfMouthRewardList()
 	 *         .get()
 	 *         .getRewards();
-	 * </pre></code>
+	 * }
+	 * </pre>
 	 */
 	ApiFuture<RewardApiResponse> getWordOfMouthRewardList();
 }

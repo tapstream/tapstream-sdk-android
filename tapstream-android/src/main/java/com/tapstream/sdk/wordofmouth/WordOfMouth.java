@@ -23,7 +23,7 @@ public interface WordOfMouth{
      * Given a Reward, report whether the reward has been consumed. The number
      * of rewards earned by a user is (number of installs driven)/(minimum
      * installs per reward), the latter being configurable on Tapstream's
-     * dashboard. If (number of rewards earned) is >= (number of rewards
+     * dashboard. If (number of rewards earned) is &gt;= (number of rewards
      * consumed), isConsumed will return true.
      *
      * @param reward The Reward to check
