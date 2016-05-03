@@ -63,6 +63,8 @@ configure([project(':tapstream-core'), project(':tapstream-android')]) {
                 issueTrackerUrl = issueTracker
                 labels = ['tapstream', 'sdk', 'analytics']
                 publicDownloadNumbers = true
+                githubRepo = "tapstream/tapstream-sdk-android"
+                githubReleaseNotesFile = 'README.md'
 
                 version {
                     name = project.version
