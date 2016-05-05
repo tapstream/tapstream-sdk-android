@@ -33,6 +33,8 @@ task clean(type: Delete) {
     delete rootProject.buildDir
 }
 
+def repoUrl = 'https://oss.sonatype.org/service/local/staging/deploy/maven2/'
+def groupId = 'com.tapstream.sdk'
 def siteUrl = 'https://tapstream.com/developer/android/integration/'
 def gitUrl = 'https://github.com/tapstream/tapstream-sdk-android.git'
 def gitConn = 'scm:git:git@github.com:tapstream/tapstream-sdk.git'
@@ -41,92 +43,75 @@ def issueTracker = 'https://github.com/tapstream/tapstream-sdk-android/issues'
 
 configure([project(':tapstream-core'), project(':tapstream-android')]) {
 
-
     def bintrayUser = project.properties['bintrayUser'] ?: ""
     def bintrayKey = project.properties['bintrayKey'] ?: ""
     def gpgPass = project.properties['gpgPass'] ?: ""
+    def sonatypeUser = project.properties['sonatypeUser'] ?: ""
+    def sonatypePass = project.properties['sonatypePass'] ?: ""
+
+    apply plugin: 'maven'
+    apply plugin: 'signing'
 
     afterEvaluate {project ->
-        project.group = 'com.tapstream.sdk'
 
-        project.bintray {
-            user = bintrayUser
-            key = bintrayKey
-            configurations = ['archives']
-            pkg {
-                repo = 'tapstream-oss'
-                name = 'tapstream-sdk-android'
-                userOrg = 'tapstream'
-                licenses = ['MIT']
-                vcsUrl = gitUrl
-                websiteUrl = siteUrl
-                issueTrackerUrl = issueTracker
-                labels = ['tapstream', 'sdk', 'analytics']
-                publicDownloadNumbers = true
-                githubRepo = "tapstream/tapstream-sdk-android"
-                githubReleaseNotesFile = 'README.md'
-
-                version {
-                    name = project.version
-                    vcsTag = project.version
-
-                    gpg {
-                        sign = true
-                        passphrase = gpgPass
+        uploadArchives {
+            repositories {
+                mavenDeployer {
+                    repository(url: repoUrl) {
+                        authentication(userName: sonatypeUser, password: sonatypePass)
                     }
 
-                    mavenCentralSync {
-                        sync = false
-                        user = 'userToken'
-                        password = 'paasword'
-                        close = '0'
+                    beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
+
+                    pom.version = project.version
+                    pom.groupId = groupId
+
+                    pom.project {
+                        name project.pomName
+                        packaging project.pomPackaging
+                        description project.pomDescription
+                        url siteUrl
+
+                        organization {
+                            name 'Tapstream'
+                            url 'https://tapstream.com'
+                        }
+
+                        licenses {
+                            license {
+                                name 'MIT License'
+                                url 'http://www.opensource.org/licenses/mit-license.php'
+                            }
+                        }
+                        developers {
+                            developer {
+                                id = 'adambard'
+                                name = 'Adam Bard'
+                                organization = 'Tapstream'
+                                organizationUrl = 'https://tapstream.com'
+                            }
+                            developer {
+                                id = 'nsitarz'
+                                name = 'Nick Sitarz'
+                                organization = 'Tapstream'
+                                organizationUrl = 'https://tapstream.com'
+                            }
+                        }
+                        scm {
+                            connection gitUrl
+                            developerConnection gitConn
+                            url gitConn
+
+                        }
                     }
+
                 }
             }
         }
 
-        project.install {
-            repositories.mavenInstaller {
-                pom.project {
-
-                    packaging project.pomPackaging
-                    name project.pomName
-                    description project.pomDescription
-                    url siteUrl
-
-                    organization {
-                        name 'Tapstream'
-                        url 'https://tapstream.com'
-                    }
-
-                    licenses {
-                        license {
-                            name 'MIT License'
-                            url 'http://www.opensource.org/licenses/mit-license.php'
-                        }
-                    }
-                    developers {
-                        developer {
-                            id = 'adambard'
-                            name = 'Adam Bard'
-                            organization = 'Tapstream'
-                            organizationUrl = 'https://tapstream.com'
-                        }
-                        developer {
-                            id = 'nsitarz'
-                            name = 'Nick Sitarz'
-                            organization = 'Tapstream'
-                            organizationUrl = 'https://tapstream.com'
-                        }
-                    }
-                    scm {
-                        connection gitUrl
-                        developerConnection gitConn
-                        url gitConn
-
-                    }
-                }
-            }
+        signing {
+            required { gradle.taskGraph.hasTask("uploadArchives") }
+            sign configurations.archives
         }
     }
 }
