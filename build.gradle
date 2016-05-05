@@ -26,7 +26,8 @@ allprojects {
         jcenter()
     }
 
-    version = "3.0.0"
+    version = "3.0.1"
+    group = "com.tapstream.sdk"
 }
 
 task clean(type: Delete) {
@@ -34,7 +35,6 @@ task clean(type: Delete) {
 }
 
 def repoUrl = 'https://oss.sonatype.org/service/local/staging/deploy/maven2/'
-def groupId = 'com.tapstream.sdk'
 def siteUrl = 'https://tapstream.com/developer/android/integration/'
 def gitUrl = 'https://github.com/tapstream/tapstream-sdk-android.git'
 def gitConn = 'scm:git:git@github.com:tapstream/tapstream-sdk.git'
@@ -42,10 +42,6 @@ def issueTracker = 'https://github.com/tapstream/tapstream-sdk-android/issues'
 
 
 configure([project(':tapstream-core'), project(':tapstream-android')]) {
-
-    def bintrayUser = project.properties['bintrayUser'] ?: ""
-    def bintrayKey = project.properties['bintrayKey'] ?: ""
-    def gpgPass = project.properties['gpgPass'] ?: ""
     def sonatypeUser = project.properties['sonatypeUser'] ?: ""
     def sonatypePass = project.properties['sonatypePass'] ?: ""
 
@@ -62,9 +58,6 @@ configure([project(':tapstream-core'), project(':tapstream-android')]) {
                     }
 
                     beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
-
-                    pom.version = project.version
-                    pom.groupId = groupId
 
                     pom.project {
                         name project.pomName

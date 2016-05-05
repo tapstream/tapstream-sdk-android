@@ -30,7 +30,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class HttpApiClient implements ApiClient {
-	public static final String VERSION = "3.0.0";
+	public static final String VERSION = "3.0.1";
 
 	private final Platform platform;
 	private final Config config;
