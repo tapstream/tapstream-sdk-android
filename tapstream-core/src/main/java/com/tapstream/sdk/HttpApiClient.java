@@ -101,9 +101,12 @@ public class HttpApiClient implements ApiClient {
 					: config.getOpenEventName();
 
 			ActivityEventSource eventSource = platform.getActivityEventSource();
+
 			if (eventSource == null || config.getActivityListenerBindsLate()) {
 				fireEvent(new Event(openEventName, false));
-			} else {
+			}
+
+			if (eventSource != null){
 				eventSource.setListener(new ActivityEventSource.ActivityListener() {
 					@Override
 					public void onOpen() {
@@ -111,6 +114,7 @@ public class HttpApiClient implements ApiClient {
 					}
 				});
 			}
+
 		}
 
 		executor.submit(new Runnable() {
