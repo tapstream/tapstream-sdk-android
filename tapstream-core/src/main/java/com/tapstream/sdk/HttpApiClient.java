@@ -30,7 +30,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class HttpApiClient implements ApiClient {
-	public static final String VERSION = "3.0.1";
+	public static final String VERSION = "3.0.2";
 
 	private final Platform platform;
 	private final Config config;
@@ -101,7 +101,7 @@ public class HttpApiClient implements ApiClient {
 					: config.getOpenEventName();
 
 			ActivityEventSource eventSource = platform.getActivityEventSource();
-			if (eventSource == null) {
+			if (eventSource == null || config.getActivityListenerBindsLate()) {
 				fireEvent(new Event(openEventName, false));
 			} else {
 				eventSource.setListener(new ActivityEventSource.ActivityListener() {

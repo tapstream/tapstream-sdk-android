@@ -15,10 +15,8 @@ import com.tapstream.sdk.wordofmouth.RewardApiResponse;
 
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
-import org.mockito.Mock;
 
 import java.io.IOException;
 import java.net.URL;
@@ -45,11 +43,9 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyObject;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.mockito.MockitoAnnotations.initMocks;
 
 
 
@@ -103,6 +99,27 @@ public class TestHttpApiClient {
         when(httpClient.sendRequest(any(HttpRequest.class))).thenReturn(new HttpResponse(200, "OK"));
         when(platform.getAppName()).thenReturn("testapp");
         config.setFireAutomaticOpenEvent(true);
+
+        apiClient.start();
+
+        ArgumentCaptor<HttpRequest> requestCaptor = ArgumentCaptor.forClass(HttpRequest.class);
+        Thread.sleep(200);
+        verify(httpClient).sendRequest(requestCaptor.capture());
+        assertThat(requestCaptor.getValue().getURL(), is(new URL("https://api.tapstream.com/accountName/event/android-testapp-open")));
+    }
+
+    @Test
+    public void testAutoOpenEventWithLateBinding() throws Exception {
+        ActivityEventSource.ActivityListener listener = mock(ActivityEventSource.ActivityListener.class);
+        ActivityEventSource aes = new ActivityEventSource();
+        aes.setListener(listener);
+
+        when(httpClient.sendRequest(any(HttpRequest.class))).thenReturn(new HttpResponse(200, "OK"));
+        when(platform.getAppName()).thenReturn("testapp");
+        when(platform.getActivityEventSource()).thenReturn(aes);
+
+        config.setFireAutomaticOpenEvent(true);
+        config.setActivityListenerBindsLate(true);
 
         apiClient.start();
 

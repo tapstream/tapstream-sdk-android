@@ -37,6 +37,8 @@ public class Config {
 	// These parameters will be automatically attached to all events fired by the sdk.
 	private final Event.Params globalEventParams = new Event.Params();
 
+	private boolean activityListenerBindsLate = false;
+
 	public String getAccountName(){
 		return accountName;
 	}
@@ -100,5 +102,13 @@ public class Config {
 
 	public void setUserFacingRequestRetryStrategy(Retry.Strategy userFacingRequestRetryStrategy) {
 		this.userFacingRequestRetryStrategy = userFacingRequestRetryStrategy;
+	}
+
+	public boolean getActivityListenerBindsLate() {
+		return activityListenerBindsLate;
+	}
+
+	public void setActivityListenerBindsLate(boolean activityListenerBindsLate) {
+		this.activityListenerBindsLate = activityListenerBindsLate;
 	}
 }

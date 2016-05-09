@@ -25,25 +25,20 @@ allprojects {
     repositories {
         jcenter()
     }
-
-    version = "3.0.1"
-    group = "com.tapstream.sdk"
 }
 
 task clean(type: Delete) {
     delete rootProject.buildDir
 }
 
-def repoUrl = 'https://oss.sonatype.org/service/local/staging/deploy/maven2/'
-def siteUrl = 'https://tapstream.com/developer/android/integration/'
-def gitUrl = 'https://github.com/tapstream/tapstream-sdk-android.git'
-def gitConn = 'scm:git:git@github.com:tapstream/tapstream-sdk.git'
-def issueTracker = 'https://github.com/tapstream/tapstream-sdk-android/issues'
-
 
 configure([project(':tapstream-core'), project(':tapstream-android')]) {
-    def sonatypeUser = project.properties['sonatypeUser'] ?: ""
-    def sonatypePass = project.properties['sonatypePass'] ?: ""
+    def sonatypeUser = project.properties['sonatypeUser']
+    def sonatypePass = project.properties['sonatypePass']
+    def repoUrl = 'https://oss.sonatype.org/service/local/staging/deploy/maven2/'
+    def siteUrl = 'https://tapstream.com/developer/android/integration/'
+    def gitUrl = 'https://github.com/tapstream/tapstream-sdk-android.git'
+    def gitConn = 'scm:git:git@github.com:tapstream/tapstream-sdk.git'
 
     apply plugin: 'maven'
     apply plugin: 'signing'

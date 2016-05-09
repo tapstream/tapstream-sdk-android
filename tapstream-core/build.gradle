@@ -47,5 +47,5 @@ ext {
     deployable = true
     pomPackaging = 'jar'
     pomName = 'Tapstream Core Java SDK'
-    pomDescription = 'This library is a building contains the core components for a Tapstream Java SDK'
+    pomDescription = 'This library contains the building blocks for a Tapstream Java SDK'
 }
