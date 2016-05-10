@@ -1,4 +1,9 @@
 apply plugin: 'java'
+apply plugin: 'de.fuerstenau.buildconfig'
+
+buildConfig {
+
+}
 
 configurations {
     testArtifacts.extendsFrom testCompile

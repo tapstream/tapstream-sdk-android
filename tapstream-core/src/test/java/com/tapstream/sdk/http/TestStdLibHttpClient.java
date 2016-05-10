@@ -77,6 +77,12 @@ public class TestStdLibHttpClient {
         client.close();
     }
 
+    @Test(expected=IOException.class)
+    public void testHostNotFound() throws Exception {
+        HttpRequest req = new HttpRequest(new URL("http://INVALID_HOSTNAME:8080/get/200"), HttpMethod.GET, null);
+        client.sendRequest(req);
+    }
+
     @Test
     public void testGetRequest200() throws Exception {
         HttpRequest req = new HttpRequest(new URL("http://localhost:8080/get/200"), HttpMethod.GET, null);

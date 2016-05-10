@@ -48,6 +48,8 @@ public class StdLibHttpClient implements HttpClient{
                 break;
         }
 
+        int responseCode = connection.getResponseCode();
+        String responseMsg = connection.getResponseMessage();
 
         InputStream is;
         try {
@@ -65,8 +67,8 @@ public class StdLibHttpClient implements HttpClient{
         }
 
         return new HttpResponse(
-                connection.getResponseCode(),
-                connection.getResponseMessage(),
+                responseCode,
+                responseMsg,
                 responseBody);
     }
 

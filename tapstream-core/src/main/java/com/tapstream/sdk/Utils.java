@@ -9,6 +9,9 @@ import java.io.InputStream;
 public class Utils {
 
     public static byte[] readFully(InputStream is) throws IOException {
+        if (is == null)
+            return null;
+
         ByteArrayOutputStream responseBodyStream = new ByteArrayOutputStream();
         byte[] buffer = new byte[1024 * 8];
         int bytesRead;
