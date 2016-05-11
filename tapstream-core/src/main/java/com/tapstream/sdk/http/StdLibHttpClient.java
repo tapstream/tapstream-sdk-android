@@ -48,28 +48,35 @@ public class StdLibHttpClient implements HttpClient{
                 break;
         }
 
-        int responseCode = connection.getResponseCode();
-        String responseMsg = connection.getResponseMessage();
-
-        InputStream is;
         try {
-            is = connection.getInputStream();
+            int responseCode = connection.getResponseCode();
+            String responseMsg = connection.getResponseMessage();
+
+            InputStream is;
+            try {
+                is = connection.getInputStream();
+            } catch (IOException e){
+                is = connection.getErrorStream();
+            }
+
+            byte[] responseBody;
+            try{
+                responseBody = Utils.readFully(is);
+            } finally {
+                if (is != null)
+                    is.close();
+            }
+
+            return new HttpResponse(
+                    responseCode,
+                    responseMsg,
+                    responseBody);
+
         } catch (IOException e){
-            is = connection.getErrorStream();
+            throw e;
+        } catch (Exception e){
+            throw new IOException(e);
         }
-
-        byte[] responseBody;
-        try{
-            responseBody = Utils.readFully(is);
-        } finally {
-            if (is != null)
-                is.close();
-        }
-
-        return new HttpResponse(
-                responseCode,
-                responseMsg,
-                responseBody);
     }
 
     @Override
