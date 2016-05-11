@@ -39,3 +39,5 @@ before_script:
 
 script:
   - ./gradlew connectedCheck
+
+after_failure: cat /home/travis/build/tapstream/tapstream-sdk-android/tapstream-android/build/reports/androidTests/connected/index.html
