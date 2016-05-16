@@ -3,8 +3,8 @@ package com.tapstream.sdk;
 
 public class Retry {
 
-    public static final Strategy DEFAULT_DATA_COLLECTION_STRATEGY = new Exponential(1000, 2, 10);
-    public static final Strategy DEFAULT_USER_FACING_RETRY_STRATEGY = new FixedDelay(500, 3);
+    public static final Strategy DEFAULT_DATA_COLLECTION_STRATEGY = new Exponential(1000, 2, 10, 2 * 60 * 1000L);
+    public static final Strategy DEFAULT_USER_FACING_RETRY_STRATEGY = new FixedDelay(500, 3, 5 * 1000L);
     public static final Strategy NEVER_RETRY = new Never();
 
     public interface Strategy {
@@ -21,10 +21,11 @@ public class Retry {
          * Decide if another attempt can be made.
          *
          * @param attempt   the current attempt number starting at 0.
+         * @param elapsedMs the number of milliseconds since the action started.
          * @return          true if another attempt at sending the request should be made.
          */
 
-        boolean shouldRetry(int attempt);
+        boolean shouldRetry(int attempt, long elapsedMs);
     }
 
     static public class Never implements Strategy {
@@ -35,7 +36,7 @@ public class Retry {
         }
 
         @Override
-        public boolean shouldRetry(int attempt) {
+        public boolean shouldRetry(int attempt, long elaspedMs) {
             return false;
         }
     }
@@ -45,11 +46,13 @@ public class Retry {
         private final int scale;
         private final int exponent;
         private final int maxTries;
+        private final long maxElapsedMs;
 
-        public Exponential(int scale, int exponent, int maxTries){
+        public Exponential(int scale, int exponent, int maxTries, long maxElapsedMs){
             this.scale = scale;
             this.exponent = exponent;
             this.maxTries = maxTries;
+            this.maxElapsedMs = maxElapsedMs;
         }
 
         @Override
@@ -64,7 +67,9 @@ public class Retry {
         }
 
         @Override
-        public boolean shouldRetry(int attempt) {
+        public boolean shouldRetry(int attempt, long elapsedMs) {
+            if (elapsedMs > maxElapsedMs)
+                return false;
             return attempt < maxTries;
         }
     }
@@ -73,10 +78,12 @@ public class Retry {
     static public class FixedDelay implements Strategy {
         private final int maxTries;
         private final int delay;
+        private final long maxElapsedMs;
 
-        public FixedDelay(int delay, int maxTries) {
+        public FixedDelay(int delay, int maxTries, long maxElapsedMs) {
             this.maxTries = maxTries;
             this.delay = delay;
+            this.maxElapsedMs = maxElapsedMs;
         }
 
         @Override
@@ -85,7 +92,9 @@ public class Retry {
         }
 
         @Override
-        public boolean shouldRetry(int attempt) {
+        public boolean shouldRetry(int attempt, long elapsedMs) {
+            if (elapsedMs > maxElapsedMs)
+                return false;
             return attempt < maxTries;
         }
     }
@@ -123,7 +132,8 @@ public class Retry {
         }
 
         public boolean shouldRetry(){
-                return retryStrategy.shouldRetry(attempt);
-            }
+            long elapsedMs = System.currentTimeMillis() - firstSent;
+            return retryStrategy.shouldRetry(attempt, elapsedMs);
+        }
     }
 }

@@ -171,7 +171,7 @@ public class TestHttpApiClient {
     @Test(timeout=1000)
     public void testFireEventWithRetries() throws Exception{
         apiClient.start();
-        config.setDataCollectionRetryStrategy(new Retry.FixedDelay(100, 5));
+        config.setDataCollectionRetryStrategy(new Retry.FixedDelay(100, 5, 1000));
         when(httpClient.sendRequest(any(HttpRequest.class)))
                 .thenReturn(new HttpResponse(500, "ERROR"))
                 .thenReturn(new HttpResponse(500, "ERROR"))
@@ -186,7 +186,7 @@ public class TestHttpApiClient {
     public void testFireEventWithRetriesExhausted() throws Exception{
         apiClient.start();
 
-        config.setDataCollectionRetryStrategy(new Retry.FixedDelay(100, 1));
+        config.setDataCollectionRetryStrategy(new Retry.FixedDelay(100, 1, 1000));
         when(httpClient.sendRequest(any(HttpRequest.class)))
                 .thenReturn(new HttpResponse(500, "ERROR"));
 
@@ -208,7 +208,7 @@ public class TestHttpApiClient {
     public void testFireEventWithHardFail() throws Exception{
         apiClient.start();
 
-        config.setDataCollectionRetryStrategy(new Retry.FixedDelay(100, 5));
+        config.setDataCollectionRetryStrategy(new Retry.FixedDelay(100, 5, 1000));
         when(httpClient.sendRequest(any(HttpRequest.class)))
                 .thenReturn(new HttpResponse(404, "ERROR"))
                 .thenReturn(new HttpResponse(200, "OK"));

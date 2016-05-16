@@ -10,7 +10,6 @@ import com.tapstream.sdk.errors.UnrecoverableApiException;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.Mock;
 
 import java.io.IOException;
 import java.net.URL;
@@ -22,7 +21,6 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-import static org.mockito.MockitoAnnotations.initMocks;
 
 
 public class TestAsyncHttpClient {
@@ -75,7 +73,7 @@ public class TestAsyncHttpClient {
             }
         };
 
-        asyncClient.sendRequest(req, new Retry.FixedDelay(0, 2), handler, responseFuture);
+        asyncClient.sendRequest(req, new Retry.FixedDelay(0, 2, 1000), handler, responseFuture);
         SimpleApiResponse response = responseFuture.get();
         assertThat(response.getHttpResponse(), is(resp));
     }
@@ -98,7 +96,7 @@ public class TestAsyncHttpClient {
             }
         };
 
-        asyncClient.sendRequest(req, new Retry.FixedDelay(0, 1), handler, responseFuture);
+        asyncClient.sendRequest(req, new Retry.FixedDelay(0, 1, 1000), handler, responseFuture);
 
         try {
             SimpleApiResponse response = responseFuture.get();
