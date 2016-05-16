@@ -34,4 +34,11 @@ public class UnrecoverableApiException extends ApiException {
     public HttpResponse getHttpResponse(){
         return response;
     }
+
+    @Override
+    public String toString() {
+        return "UnrecoverableApiException{" +
+                "response=" + response +
+                '}';
+    }
 }

@@ -68,4 +68,12 @@ public class HttpResponse {
 		}
         throw new UnrecoverableApiException(this, "Word of Mouth reward lookup failed.");
 	}
+
+    @Override
+    public String toString() {
+        return "HttpResponse{" +
+                "status=" + status +
+                ", message='" + message + '\'' +
+                '}';
+    }
 };

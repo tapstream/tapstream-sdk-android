@@ -42,32 +42,38 @@ public class AsyncHttpRequest<T extends ApiResponse> implements Runnable {
         responseFuture.setException(e);
     }
 
+    private void retryRequest(Exception e){
+        if (responseFuture.isCancelled()){
+            Logging.log(Logging.INFO, "API request cancelled");
+        } else if (retryable.shouldRetry()) {
+            Logging.log(Logging.ERROR, "Failure during request, retrying (cause: %s)", e.toString());
+            retryable.incrementAttempt();
+            handler.onRetry();
+            Future<?> requestFuture = executor.schedule(this, retryable.getDelayMs(), TimeUnit.MILLISECONDS);
+            responseFuture.propagateCancellationTo(requestFuture);
+        } else {
+            Logging.log(Logging.ERROR, "No more retries, failing permanently (cause: %s).", e.toString());
+            fail(new RetriesExhaustedException());
+        }
+    }
+
     final public void run() {
         try {
             HttpResponse response = client.sendRequest(retryable.get());
             response.throwOnError();
             responseFuture.set(handler.checkedRun(response));
         } catch (RecoverableApiException e) {
-            if (responseFuture.isCancelled()){
-                Logging.log(Logging.INFO, "API request cancelled");
-            } else if (retryable.shouldRetry()) {
-                Logging.log(Logging.WARN, "Failure during request, retrying (http code %d).", e.getHttpResponse().status);
-                retryable.incrementAttempt();
-                handler.onRetry();
-                Future<?> requestFuture = executor.schedule(this, retryable.getDelayMs(), TimeUnit.MILLISECONDS);
-                responseFuture.propagateCancellationTo(requestFuture);
-            } else {
-                Logging.log(Logging.WARN, "No more retries, failing permanently (http code %d).", e.getHttpResponse().status);
-                fail(new RetriesExhaustedException());
-            }
-        } catch (UnrecoverableApiException e) {
-            Logging.log(Logging.ERROR, "Unrecoverable request error");
-            fail(e);
-        } catch (IOException e){
-            Logging.log(Logging.ERROR, "IO Error during API call");
+            retryRequest(e);
+        } catch (IOException e) {
+            retryRequest(e);
+        } catch (UnrecoverableApiException e){
+            Logging.log(Logging.ERROR, "Unrecoverable API exception. " +
+                    "Check that your API secret and account name are correct (cause: %s",
+                    e.toString());
             fail(e);
         } catch (Exception e) {
-            Logging.log(Logging.ERROR, e.toString());
+            Logging.log(Logging.ERROR, "Unhandled exception during request (cause: %s)",
+                    e.toString());
             fail(e);
         }
     }

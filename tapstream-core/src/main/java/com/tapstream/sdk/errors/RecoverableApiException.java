@@ -2,10 +2,6 @@ package com.tapstream.sdk.errors;
 
 import com.tapstream.sdk.http.HttpResponse;
 
-/**
- * Created by adam on 2016-04-20.
- */
-
 
 public class RecoverableApiException extends ApiException {
 
@@ -37,5 +33,12 @@ public class RecoverableApiException extends ApiException {
 
     public HttpResponse getHttpResponse(){
         return response;
+    }
+
+    @Override
+    public String toString() {
+        return "RecoverableApiException{" +
+                "response=" + response +
+                '}';
     }
 }
