@@ -1,4 +1,5 @@
 language: android
+sudo: true
 env:
   global:
     # switch glibc to a memory conserving mode
