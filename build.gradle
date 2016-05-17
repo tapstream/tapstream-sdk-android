@@ -34,7 +34,6 @@ task clean(type: Delete) {
 configure([project(':tapstream-core'), project(':tapstream-android')]) {
     def sonatypeUser = project.properties['sonatypeUser']
     def sonatypePass = project.properties['sonatypePass']
-    def repoUrl = 'https://oss.sonatype.org/service/local/staging/deploy/maven2/'
     def siteUrl = 'https://tapstream.com/developer/android/integration/'
     def gitUrl = 'https://github.com/tapstream/tapstream-sdk-android.git'
     def gitConn = 'scm:git:git@github.com:tapstream/tapstream-sdk.git'
@@ -47,7 +46,11 @@ configure([project(':tapstream-core'), project(':tapstream-android')]) {
         uploadArchives {
             repositories {
                 mavenDeployer {
-                    repository(url: repoUrl) {
+                    repository(url: 'https://oss.sonatype.org/service/local/staging/deploy/maven2/') {
+                        authentication(userName: sonatypeUser, password: sonatypePass)
+                    }
+
+                    snapshotRepository(url: 'https://oss.sonatype.org/content/repositories/snapshots'){
                         authentication(userName: sonatypeUser, password: sonatypePass)
                     }
 
