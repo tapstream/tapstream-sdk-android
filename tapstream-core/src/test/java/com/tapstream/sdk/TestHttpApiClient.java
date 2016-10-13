@@ -95,6 +95,18 @@ public class TestHttpApiClient {
     }
 
     @Test
+    public void testGetTimelineSummary() throws Exception {
+        String session = UUID.randomUUID().toString();
+        when(platform.loadSessionId()).thenReturn(session);
+        apiClient.start();
+        HttpRequest request = RequestBuilders.timelineSummaryRequestBuilder("theSecret", session).build();
+        when(httpClient.sendRequest(request)).thenReturn(new HttpResponse(200, "OK"));
+        TimelineSummaryResponse response = apiClient.getTimelineSummary().get();
+        assertThat(response.getHttpResponse().getStatus(), is(200));
+        assertThat(response.isEmpty(), is(true));
+    }
+
+    @Test
     public void testAutoOpenEvent() throws Exception {
         when(httpClient.sendRequest(any(HttpRequest.class))).thenReturn(new HttpResponse(200, "OK"));
         when(platform.getAppName()).thenReturn("testapp");

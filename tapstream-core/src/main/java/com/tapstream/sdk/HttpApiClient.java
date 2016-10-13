@@ -304,6 +304,52 @@ public class HttpApiClient implements ApiClient {
 	}
 
 	@Override
+	public ApiFuture<TimelineSummaryResponse> getTimelineSummary() {
+		final SettableApiFuture<TimelineSummaryResponse> responseFuture = new SettableApiFuture<TimelineSummaryResponse>();
+		try {
+			getTimelineSummary(responseFuture);
+		} catch (Exception e){
+			responseFuture.setException(e);
+		}
+		return responseFuture;
+	}
+
+	private void getTimelineSummary(final SettableApiFuture<TimelineSummaryResponse> responseFuture) {
+		try {
+			synchronized (this){
+				if (queueRequests) {
+					queuedRequests.add(new Runnable() {
+
+						@Override
+						public void run() {
+							getTimelineSummary(responseFuture);
+						}
+					});
+					return;
+				}
+			}
+
+			final HttpRequest request = RequestBuilders
+					.timelineSummaryRequestBuilder(config.getDeveloperSecret(), platform.loadSessionId())
+					.build();
+
+			AsyncHttpRequest.Handler<TimelineSummaryResponse> responseHandler = new AsyncHttpRequest.Handler<TimelineSummaryResponse>() {
+				@Override
+				public TimelineSummaryResponse checkedRun(HttpResponse resp) throws IOException, ApiException {
+					return TimelineSummaryResponse.createSummaryResponse(resp);
+				}
+			};
+
+			asyncClient.sendRequest(request, config.getUserFacingRequestRetryStrategy(), responseHandler, responseFuture);
+
+		} catch (Exception e) {
+			responseFuture.setException(e);
+			return;
+		}
+
+	}
+
+	@Override
 	public ApiFuture<OfferApiResponse> getWordOfMouthOffer(final String insertionPoint) {
 		final SettableApiFuture<OfferApiResponse> responseFuture = new SettableApiFuture<OfferApiResponse>();
 

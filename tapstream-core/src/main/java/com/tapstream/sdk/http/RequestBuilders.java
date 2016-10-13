@@ -34,6 +34,17 @@ public class RequestBuilders {
                 .addQueryParameter("event_session", eventSession)
                 .addQueryParameter("blocking", "true");
     }
+    public static HttpRequest.Builder timelineSummaryRequestBuilder(String secret, String eventSession){
+
+        return new HttpRequest.Builder()
+                .method(HttpMethod.GET)
+                .scheme(DEFAULT_SCHEME)
+                .host(REPORTING_TAPSTREAM_COM)
+                .path("/v1/timelines/summary")
+                .addQueryParameter("secret", secret)
+                .addQueryParameter("event_session", eventSession)
+                .addQueryParameter("blocking", "true");
+    }
 
     public static HttpRequest.Builder wordOfMouthOfferRequestBuilder(String secret, String insertionPoint, String bundle) {
         return new HttpRequest.Builder()
