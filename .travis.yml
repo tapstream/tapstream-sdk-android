@@ -32,6 +32,7 @@ android:
 
 before_script:
   - android list target
+  - ./gradlew -version
   - ./gradlew assemble lint
   - echo no | android create avd --force -n test -t android-$ANDROID_TARGET --abi $ANDROID_ABI
   - emulator -avd test -no-skin -no-audio -no-window &
