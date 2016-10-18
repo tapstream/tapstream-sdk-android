@@ -86,6 +86,11 @@ public class Tapstream implements AndroidApiClient {
 	}
 
 	@Override
+	public ApiFuture<TimelineSummaryResponse> getTimelineSummary() {
+		return client.getTimelineSummary();
+	}
+
+	@Override
 	public ApiFuture<OfferApiResponse> getWordOfMouthOffer(String insertionPoint) {
 		return client.getWordOfMouthOffer(insertionPoint);
 	}
