@@ -8,6 +8,7 @@ import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -36,8 +37,10 @@ public class TimelineSummaryResponse implements ApiResponse {
     private static Map<String, String> jsonObjectToStringMap(JSONObject obj){
         Map<String, String> strs = new HashMap<String, String>(obj.length());
         if(obj != null) {
-            for (Object k : obj.keySet()) {
-                strs.put((String) k, obj.getString((String) k));
+            Iterator ks = obj.keys();
+            while(ks.hasNext()) {
+                String k = (String) ks.next();
+                strs.put(k, obj.getString(k));
             }
         }
         return strs;
