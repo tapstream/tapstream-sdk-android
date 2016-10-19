@@ -81,6 +81,14 @@
         android:id="@+id/buttonLookupTimeline"
         android:layout_below="@+id/buttonLookupOffer" />
 
+    <Button
+        android:onClick="onClickLookupTimelineSummary"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Timeline Summary"
+        android:id="@+id/buttonLookupTimelineSummary"
+        android:layout_below="@+id/buttonLookupTimeline" />
+
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

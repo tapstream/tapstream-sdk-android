@@ -6,6 +6,7 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.text.TextUtils;
 import android.view.View;
 import android.widget.TextView;
 
@@ -16,6 +17,7 @@ import com.tapstream.sdk.Event;
 import com.tapstream.sdk.EventApiResponse;
 import com.tapstream.sdk.Tapstream;
 import com.tapstream.sdk.TimelineApiResponse;
+import com.tapstream.sdk.TimelineSummaryResponse;
 import com.tapstream.sdk.wordofmouth.Offer;
 import com.tapstream.sdk.wordofmouth.OfferApiResponse;
 import com.tapstream.sdk.wordofmouth.Reward;
@@ -121,6 +123,37 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+    private void lookupTimelineSummary(){
+        statusView.setText("Working...");
+
+        final long startTime = System.currentTimeMillis();
+        Tapstream.getInstance().getTimelineSummary().setCallback(new Callback<TimelineSummaryResponse>() {
+            @Override
+            public void success(TimelineSummaryResponse result) {
+                if(result.isEmpty()){
+                    runOnUiThread(new TextUpdater(statusView, "Timeline summary was empty"));
+                }else{
+                    StringBuilder report = new StringBuilder();
+                    report.append("Latest Deeplink: ");
+                    report.append(result.getLatestDeeplink());
+                    report.append("\n");
+                    report.append("Deeplinks: ");
+                    report.append(result.getDeeplinks().size());
+
+                    report.append(", Campaigns: ");
+                    report.append(result.getCampaigns().size());
+
+                    runOnUiThread(new TextUpdater(statusView, report.toString()));
+                }
+            }
+
+            @Override
+            public void error(Throwable reason) {
+                runOnUiThread(new TextUpdater(statusView, "error getting timeline"));
+            }
+        });
+    }
+
 
     public void onClickLookupOffer(View view){
         statusView.setText("Working!");
@@ -186,6 +219,10 @@ public class MainActivity extends AppCompatActivity {
 
     public void onClickLookupTimeline(View view){
         lookupTimeline();
+    }
+
+    public void onClickLookupTimelineSummary(View view){
+        lookupTimelineSummary();
     }
 
     public void onClickFireEventWithParams(View view){

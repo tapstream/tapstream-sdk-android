@@ -29,6 +29,17 @@ public interface ApiClient extends Closeable {
     ApiFuture<TimelineApiResponse> lookupTimeline();
 
 	/**
+	 * Queries Tapstream's timeline summary API to get a summary of the current user's timeline.
+	 * May be used to more easily implement deferred deep links. For more information please see
+	 * <a href="https://tapstream.com/developer/android/onboarding-links/">Tapstream's documentation</a>
+	 * on the subject.
+	 *
+	 * @return An ApiFuture wrapping a TimelineSummaryResponse, which provides a summary of the current
+	 * 		user's timeline (in particular the latestDeeplink field).
+     */
+	ApiFuture<TimelineSummaryResponse> getTimelineSummary();
+
+	/**
 	 * Queries the Word of Mouth API to retrieve an offer to be displayed to
 	 * the current user, at the given insertion point.
 	 *
