@@ -13,9 +13,11 @@ import static org.hamcrest.collection.IsIterableContainingInOrder.contains;
 
 public class TestTimelineSummaryResponse {
 
+    Long timestamp = System.currentTimeMillis();
 
     String validBody = "{" +
             "\"latest_deeplink\": \"testapp://somepath\"," +
+            "\"latest_deeplink_timestamp\": " + timestamp + "," +
             "\"deeplinks\": [\"testapp://someotherpath\",\"testapp://somepath\"]," +
             "\"campaigns\": [\"mycampaign1\", \"mycampaign2\"]," +
             "\"hit_params\": {\"mypar1\": \"myval1\",\"mypar2\":\"myval2\"}," +
@@ -48,6 +50,7 @@ public class TestTimelineSummaryResponse {
         assertThat(validResponse.getDeeplinks().size(), is(2));
         assertThat(validResponse.getDeeplinks(), contains("testapp://someotherpath", "testapp://somepath"));
         assertThat(validResponse.getLatestDeeplink(), is("testapp://somepath"));
+        assertThat(validResponse.getLatestDeeplinkTimestamp(), is(timestamp));
     }
 
 }
