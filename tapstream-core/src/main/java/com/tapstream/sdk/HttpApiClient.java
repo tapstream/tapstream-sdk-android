@@ -9,6 +9,8 @@ import com.tapstream.sdk.http.HttpRequest;
 import com.tapstream.sdk.http.HttpResponse;
 import com.tapstream.sdk.http.RequestBuilders;
 import com.tapstream.sdk.http.StdLibHttpClient;
+import com.tapstream.sdk.landers.Lander;
+import com.tapstream.sdk.landers.LanderApiResponse;
 import com.tapstream.sdk.wordofmouth.Offer;
 import com.tapstream.sdk.wordofmouth.OfferApiResponse;
 import com.tapstream.sdk.wordofmouth.Reward;
@@ -403,6 +405,33 @@ public class HttpApiClient implements ApiClient {
 						}
 					}
 					return new RewardApiResponse(resp, rewards);
+				}
+			};
+
+			asyncClient.sendRequest(request, config.getUserFacingRequestRetryStrategy(), handler, responseFuture);
+
+		} catch (Exception e){
+			responseFuture.setException(e);
+		}
+
+		return responseFuture;
+
+	}
+
+	@Override
+	public ApiFuture<LanderApiResponse> getInAppLander() {
+		final SettableApiFuture<LanderApiResponse> responseFuture = new SettableApiFuture<LanderApiResponse>();
+		try {
+			final HttpRequest request = RequestBuilders
+					.inAppLanderRequestBuilder(config.getDeveloperSecret(), platform.loadSessionId())
+					.build();
+
+			AsyncHttpRequest.Handler<LanderApiResponse> handler = new AsyncHttpRequest.Handler<LanderApiResponse>() {
+				@Override
+				public LanderApiResponse checkedRun(HttpResponse resp) throws IOException, ApiException {
+					JSONObject responseObject = new JSONObject(resp.getBodyAsString());
+					Lander lander = Lander.fromApiResponse(responseObject);
+					return new LanderApiResponse(resp, lander);
 				}
 			};
 

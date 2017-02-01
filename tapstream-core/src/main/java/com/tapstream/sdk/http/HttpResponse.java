@@ -66,7 +66,7 @@ public class HttpResponse {
 		if(this.shouldRetry()) {
 			throw new RecoverableApiException(this);
 		}
-        throw new UnrecoverableApiException(this, "Word of Mouth reward lookup failed.");
+        throw new UnrecoverableApiException(this, "HTTP Error, not recoverable.");
 	}
 
     @Override

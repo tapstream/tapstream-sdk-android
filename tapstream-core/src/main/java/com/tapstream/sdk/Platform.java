@@ -1,5 +1,6 @@
 package com.tapstream.sdk;
 
+import com.tapstream.sdk.landers.Lander;
 import com.tapstream.sdk.wordofmouth.Reward;
 
 import java.util.Set;
@@ -37,4 +38,8 @@ public interface Platform {
 	Callable<AdvertisingID> getAdIdFetcher();
 
 	ActivityEventSource getActivityEventSource();
+
+	boolean hasShown(Lander lander);
+
+	void registerLanderShown(Lander lander);
 }

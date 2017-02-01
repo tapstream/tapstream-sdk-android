@@ -14,6 +14,7 @@ import android.widget.PopupWindow;
 
 import com.tapstream.sdk.Logging;
 import com.tapstream.sdk.Platform;
+import com.tapstream.sdk.PopupWebView;
 import com.tapstream.sdk.Tapstream;
 
 
@@ -53,29 +54,10 @@ public class WordOfMouthImpl implements WordOfMouth{
          *   - WebViewClient builds intent
          *   - WebViewClient sends intent (given mainActivity)
          */
-        final Context applicationContext = mainActivity.getApplicationContext();
-        WebView wv;
-        try {
-            wv = new WebView(applicationContext);
-        }catch(RuntimeException e){
-            Logging.log(Logging.ERROR, "RuntimeException thrown creating WebView. This probably" +
-                    "means you ran showOffer on a non-ui thread. Stack trace: %s",
-                    Log.getStackTraceString(e));
-            throw e;
-        }
-
-        final PopupWindow window = new PopupWindow(
-            wv,
-            ViewGroup.LayoutParams.MATCH_PARENT,
-            ViewGroup.LayoutParams.MATCH_PARENT);
-        window.showAtLocation(parent, Gravity.NO_GRAVITY, 0, 0);
-
-
-        wv.loadDataWithBaseURL("https://tapstream.com/", o.getMarkup(), "text/html", null, "https://tapstream.com/");
-        wv.setBackgroundColor(Color.TRANSPARENT);
+        final PopupWebView popup = PopupWebView.initializeWithActivity(mainActivity);
         final String uuid = platform.loadSessionId();
 
-        wv.setWebViewClient(new WebViewClient(){
+        popup.showPopupWithMarkup(parent, o.getMarkup(), new WebViewClient(){
             @Override
             public boolean shouldOverrideUrlLoading(WebView view, String url) {
                 if(url.endsWith("accept")){
@@ -85,7 +67,7 @@ public class WordOfMouthImpl implements WordOfMouth{
                     sendIntent.setType("text/plain");
                     mainActivity.startActivity(sendIntent);
                 }
-                window.dismiss();
+                popup.dismiss();
                 return true;
             }
         });

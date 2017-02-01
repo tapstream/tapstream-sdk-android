@@ -65,4 +65,14 @@ public class RequestBuilders {
                 .addQueryParameter("secret", secret)
                 .addQueryParameter("event_session", eventSession);
     }
+
+    public static HttpRequest.Builder inAppLanderRequestBuilder(String secret, String eventSession){
+        return new HttpRequest.Builder()
+                .method(HttpMethod.GET)
+                .scheme(DEFAULT_SCHEME)
+                .host(REPORTING_TAPSTREAM_COM)
+                .path("/v1/in_app_landers/display/")
+                .addQueryParameter("secret", secret)
+                .addQueryParameter("event_session", eventSession);
+    }
 }

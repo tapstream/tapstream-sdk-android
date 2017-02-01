@@ -11,6 +11,7 @@ import android.util.DisplayMetrics;
 import android.view.Display;
 import android.view.WindowManager;
 
+import com.tapstream.sdk.landers.Lander;
 import com.tapstream.sdk.wordofmouth.Reward;
 
 import java.lang.reflect.Constructor;
@@ -26,6 +27,7 @@ class AndroidPlatform implements Platform {
 	public static final String FIRED_EVENTS_KEY = "TapstreamSDKFiredEvents";
 	public static final String UUID_KEY = "TapstreamSDKUUID";
 	public static final String WOM_REWARDS_KEY = "TapstreamWOMRewards";
+	public static final String IN_APP_LANDERS_KEY = "TapstreamInAppLanders";
 
 	private final Application app;
 
@@ -174,5 +176,22 @@ class AndroidPlatform implements Platform {
 		} catch(Throwable e) {
 			return null;
 		}
+	}
+
+	@Override
+	public boolean hasShown(Lander lander) {
+		SharedPreferences prefs = app.getApplicationContext().getSharedPreferences(
+				IN_APP_LANDERS_KEY, Context.MODE_PRIVATE);
+		String key = Integer.toString(lander.getId());
+		return prefs.getBoolean(key, false);
+	}
+
+	@Override
+	public void registerLanderShown(Lander lander) {
+		SharedPreferences prefs = app.getApplicationContext().getSharedPreferences(
+				IN_APP_LANDERS_KEY, Context.MODE_PRIVATE);
+		String key = Integer.toString(lander.getId());
+
+		prefs.edit().putBoolean(key, true).apply();
 	}
 }

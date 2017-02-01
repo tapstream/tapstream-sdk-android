@@ -89,12 +89,20 @@
         android:id="@+id/buttonLookupTimelineSummary"
         android:layout_below="@+id/buttonLookupTimeline" />
 
+    <Button
+        android:onClick="onClickShowLander"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Show Lander (if not shown)"
+        android:id="@+id/buttonShowLander"
+        android:layout_below="@+id/buttonLookupTimelineSummary" />
+
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_above="@+id/buttonClearState"
         android:textAlignment="center"
-        android:id="@+id/textStatus"/>
+        android:id="@+id/textStatus"
+        android:layout_below="@+id/buttonShowLander"/>
 
     <Button
         android:onClick="onClearStateClicked"
@@ -102,10 +110,7 @@
         android:layout_height="wrap_content"
         android:text="Clear State"
         android:id="@+id/buttonClearState"
-        android:layout_alignParentBottom="true"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true"
-        android:layout_marginBottom="54dp"/>
+        android:layout_below="@+id/textStatus"/>
 
 
 </RelativeLayout>

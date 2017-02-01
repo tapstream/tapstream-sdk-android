@@ -6,6 +6,9 @@ import android.support.test.runner.AndroidJUnit4;
 
 import com.tapstream.sdk.http.HttpClient;
 import com.tapstream.sdk.http.HttpRequest;
+import com.tapstream.sdk.landers.InAppLanderImpl;
+import com.tapstream.sdk.landers.Lander;
+import com.tapstream.sdk.landers.LanderApiResponse;
 import com.tapstream.sdk.wordofmouth.Reward;
 import com.tapstream.sdk.wordofmouth.RewardApiResponse;
 import com.tapstream.sdk.wordofmouth.WordOfMouth;
@@ -19,6 +22,7 @@ import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 
+import static junit.framework.Assert.assertFalse;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.Matchers.any;
@@ -46,9 +50,10 @@ public class TestTapstream extends BaseAndroidTest {
 
         config = new Config(ACCOUNT_NAME, SDKTEST_SECRET);
         WordOfMouth wom = WordOfMouthImpl.getInstance(platform);
+        InAppLanderImpl landerImpl = InAppLanderImpl.getInstance(platform);
         ScheduledExecutorService ex = Executors.newSingleThreadScheduledExecutor(new DaemonThreadFactory());
         HttpApiClient client = new HttpApiClient(platform, config, httpClient, ex);
-        ts = new Tapstream(client, wom);
+        ts = new Tapstream(client, wom, landerImpl);
     }
 
 
@@ -72,6 +77,4 @@ public class TestTapstream extends BaseAndroidTest {
         rewards = futureRewards.get().getRewards();
         assertThat(rewards.size(), is(0));
     }
-
-
 }

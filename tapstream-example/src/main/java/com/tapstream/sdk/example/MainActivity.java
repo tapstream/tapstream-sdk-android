@@ -18,6 +18,9 @@ import com.tapstream.sdk.EventApiResponse;
 import com.tapstream.sdk.Tapstream;
 import com.tapstream.sdk.TimelineApiResponse;
 import com.tapstream.sdk.TimelineSummaryResponse;
+import com.tapstream.sdk.landers.ILanderDelegate;
+import com.tapstream.sdk.landers.Lander;
+import com.tapstream.sdk.landers.LanderApiResponse;
 import com.tapstream.sdk.wordofmouth.Offer;
 import com.tapstream.sdk.wordofmouth.OfferApiResponse;
 import com.tapstream.sdk.wordofmouth.Reward;
@@ -87,6 +90,7 @@ public class MainActivity extends AppCompatActivity {
         clearPrefs("TapstreamSDKFiredEvents");
         clearPrefs("TapstreamSDKUUID");
         clearPrefs("TapstreamWOMRewards");
+        clearPrefs("TapstreamInAppLanders");
     }
 
     private void lookupTimeline(){
@@ -248,6 +252,49 @@ public class MainActivity extends AppCompatActivity {
         statusView.setText("State cleared");
     }
 
+    public void onClickShowLander(View view){
+
+        final Activity mainActivity = this;
+        final ILanderDelegate delegate = new ILanderDelegate() {
+            @Override
+            public void showedLander(Lander lander) {
+                statusView.setText(String.format("Showed lander (id=%d)", lander.getId()));
+            }
+
+            @Override
+            public void dismissedLander() {
+                statusView.setText("Lander dismissed");
+            }
+
+            @Override
+            public void submittedLander() {
+                statusView.setText("Lander submitted");
+            }
+        };
+
+        ApiFuture<LanderApiResponse> resp = Tapstream.getInstance().getInAppLander();
+        resp.setCallback(new Callback<LanderApiResponse>() {
+            @Override
+            public void success(LanderApiResponse result) {
+                final Lander lander = result.getLander();
+
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        View parent = findViewById(R.id.main_layout);
+                        statusView.setText("Showing lander (if one exists)...");
+                        Tapstream.getInstance().showLanderIfUnseen(mainActivity, parent, lander, delegate);
+                    }
+                });
+            }
+
+            @Override
+            public void error(Throwable reason) {
+
+            }
+        });
+    }
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -261,6 +308,8 @@ public class MainActivity extends AppCompatActivity {
 
         Config config = new Config("sdktest", "YGP2pezGTI6ec48uti4o1w");
         config.setGlobalEventParameter("user_id", "92429d82a41e");
+        config.setUseWordOfMouth(true);
+        config.setUseInAppLanders(true);
 
         Tapstream.create(getApplication(), config);
         lookupTimeline();

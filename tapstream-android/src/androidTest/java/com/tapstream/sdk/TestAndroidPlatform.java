@@ -5,6 +5,7 @@ import android.os.Build;
 import android.support.test.runner.AndroidJUnit4;
 
 import com.tapstream.sdk.api14.ActivityCallbacks;
+import com.tapstream.sdk.landers.Lander;
 import com.tapstream.sdk.wordofmouth.Reward;
 
 import org.hamcrest.Matchers;
@@ -13,6 +14,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import java.io.InputStream;
 import java.util.Set;
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -112,5 +114,15 @@ public class TestAndroidPlatform extends BaseAndroidTest {
             Object aes = platform.getActivityEventSource();
             assertThat(aes, is(nullValue()));
         }
+    }
+
+    @Test
+    public void testLanderLogic() throws Exception {
+        InputStream is = app.getResources().openRawResource(com.tapstream.sdk.test.R.raw.lander_with_markup);
+        byte[] body = Utils.readFully(is);
+        Lander lander = Lander.fromApiResponse(new JSONObject(new String(body)));
+        assertThat(platform.hasShown(lander), is(false));
+        platform.registerLanderShown(lander);
+        assertThat(platform.hasShown(lander), is(true));
     }
 }

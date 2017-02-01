@@ -1,6 +1,6 @@
 package com.tapstream.sdk.wordofmouth;
 
-import com.tapstream.sdk.Platform;
+import com.tapstream.sdk.DelegatedJSONObject;
 
 import org.json.JSONObject;
 

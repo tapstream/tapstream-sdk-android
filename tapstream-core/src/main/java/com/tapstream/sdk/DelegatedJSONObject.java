@@ -1,9 +1,9 @@
-package com.tapstream.sdk.wordofmouth;
+package com.tapstream.sdk;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
-class DelegatedJSONObject {
+public class DelegatedJSONObject {
     protected final JSONObject delegate;
 
     protected DelegatedJSONObject(JSONObject delegate){
@@ -12,6 +12,9 @@ class DelegatedJSONObject {
 
     protected String getOrDefault(String key, String d){
         try {
+            if(!delegate.has(key) || delegate.isNull(key)){
+                return d;
+            }
             return delegate.getString(key);
         }catch(JSONException e){
             return d;
@@ -20,6 +23,9 @@ class DelegatedJSONObject {
 
     protected int getOrDefault(String key, int d){
         try {
+            if(!delegate.has(key) || delegate.isNull(key)) {
+                return d;
+            }
             return delegate.getInt(key);
         }catch(JSONException e){
             return d;
