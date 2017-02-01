@@ -31,6 +31,7 @@ abstract public class BaseAndroidTest {
         clearPrefs(AndroidPlatform.FIRED_EVENTS_KEY);
         clearPrefs(AndroidPlatform.UUID_KEY);
         clearPrefs(AndroidPlatform.WOM_REWARDS_KEY);
+        clearPrefs(AndroidPlatform.IN_APP_LANDERS_KEY);
     }
 
     public HttpResponse jsonResponse(int resId) throws Exception{

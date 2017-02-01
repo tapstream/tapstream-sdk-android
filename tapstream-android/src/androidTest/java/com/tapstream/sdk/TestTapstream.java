@@ -60,7 +60,7 @@ public class TestTapstream extends BaseAndroidTest {
     @Test
     public void testRewardConsumption() throws Exception{
         when(httpClient.sendRequest((HttpRequest) any()))
-                .thenReturn(jsonResponse(com.tapstream.sdk.test.R.raw.rewards));
+                .thenReturn(jsonResponse(com.tapstream.sdk.test.R.raw.rewards_raw));
 
         ApiFuture<RewardApiResponse> futureRewards = ts.getWordOfMouthRewardList();
         List<Reward> rewards = futureRewards.get().getRewards();

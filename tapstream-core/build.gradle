@@ -22,13 +22,13 @@ dependencies {
 
 sourceCompatibility = 1.6
 targetCompatibility = 1.6
-
+/*
 task copyTestResources(type: Copy) {
     from sourceSets.test.resources
     into sourceSets.test.output.classesDir
 }
 processTestResources.dependsOn copyTestResources
-
+*/
 task testJar (type: Jar, dependsOn: testClasses) {
     classifier "test"
     from sourceSets.test.output
