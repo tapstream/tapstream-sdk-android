@@ -1,11 +1,13 @@
 package com.tapstream.sdk.wordofmouth;
 
+import com.tapstream.sdk.DelegatedJSONObject;
+
 import org.json.JSONObject;
 
 /**
  * Represents an Offer retrieved from Tapstream's word-of-mouth API.
  */
-public class Offer extends DelegatedJSONObject{
+public class Offer extends DelegatedJSONObject {
     public static Offer fromApiResponse(JSONObject delegate){
         return new Offer(delegate);
     }

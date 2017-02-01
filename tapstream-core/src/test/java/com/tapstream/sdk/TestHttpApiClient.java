@@ -59,7 +59,8 @@ public class TestHttpApiClient {
     ScheduledExecutorService executor;
 
     static HttpResponse jsonResponse(String jsonResourcePath) throws IOException {
-        return new HttpResponse(200, "", Resources.toByteArray(Resources.getResource(jsonResourcePath)));
+        URL resourceURL = Resources.getResource(jsonResourcePath);
+        return new HttpResponse(200, "", Resources.toByteArray(resourceURL));
     }
 
     @Before

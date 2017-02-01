@@ -33,6 +33,9 @@ public class Config {
 
 	// Unset this to save a little memory by not using the WordOfMouth feature.
 	private boolean useWordOfMouth = false;
+
+	// Unset this to save a bit more memory by not using the InAppLanders feature.
+	private boolean useInAppLanders = false;
 	
 	// These parameters will be automatically attached to all events fired by the sdk.
 	private final Event.Params globalEventParams = new Event.Params();
@@ -87,6 +90,12 @@ public class Config {
 
 	public boolean getUseWordOfMouth(){return useWordOfMouth;}
 	public void setUseWordOfMouth(boolean v){ useWordOfMouth = v;}
+
+	public boolean getUseInAppLanders() { return useInAppLanders; }
+
+	public void setUseInAppLanders(boolean useInAppLanders) {
+		this.useInAppLanders = useInAppLanders;
+	}
 
 	public Retry.Strategy getDataCollectionRetryStrategy() {
 		return dataCollectionRetryStrategy;

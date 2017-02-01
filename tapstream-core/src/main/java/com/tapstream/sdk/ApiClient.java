@@ -1,5 +1,6 @@
 package com.tapstream.sdk;
 
+import com.tapstream.sdk.landers.LanderApiResponse;
 import com.tapstream.sdk.wordofmouth.OfferApiResponse;
 import com.tapstream.sdk.wordofmouth.RewardApiResponse;
 
@@ -75,4 +76,6 @@ public interface ApiClient extends Closeable {
 	 * </pre>
 	 */
 	ApiFuture<RewardApiResponse> getWordOfMouthRewardList();
+
+	ApiFuture<LanderApiResponse> getInAppLander();
 }
