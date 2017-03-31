@@ -19,8 +19,19 @@ public class AsyncHttpRequest<T extends ApiResponse> implements Runnable {
 
     public abstract static class Handler<T> {
         protected abstract T checkedRun(HttpResponse resp) throws IOException, ApiException;
-        protected void onFailure(){};
-        protected void onRetry(){};
+
+        protected void onError(Throwable e){
+            this.onFailure();
+        }
+
+        protected void onFailure(UnrecoverableApiException e, HttpResponse resp){
+            Logging.log(Logging.ERROR, "Unrecoverable API exception. " +
+                            "Check that your API secret and account name are correct (cause: %s)",
+                    e.toString());
+            this.onFailure();
+        }
+        protected void onFailure(){}
+        protected void onRetry(){}
     }
 
     final HttpClient client;
@@ -38,7 +49,12 @@ public class AsyncHttpRequest<T extends ApiResponse> implements Runnable {
     }
 
     private void fail(Throwable e){
-        handler.onFailure();
+        handler.onError(e);
+        responseFuture.setException(e);
+    }
+
+    private void fail(UnrecoverableApiException e, HttpResponse resp){
+        handler.onFailure(e, resp);
         responseFuture.setException(e);
     }
 
@@ -60,16 +76,21 @@ public class AsyncHttpRequest<T extends ApiResponse> implements Runnable {
     final public void run() {
         try {
             HttpResponse response = client.sendRequest(retryable.get());
-            response.throwOnError();
+
+            // Send unrecoverable exceptions to the response-aware handler method
+            try {
+                response.throwOnError();
+            }catch(UnrecoverableApiException e){
+                fail(e, response);
+                return;
+            }
+
             responseFuture.set(handler.checkedRun(response));
         } catch (RecoverableApiException e) {
             retryRequest(e);
         } catch (IOException e) {
             retryRequest(e);
         } catch (UnrecoverableApiException e){
-            Logging.log(Logging.ERROR, "Unrecoverable API exception. " +
-                    "Check that your API secret and account name are correct (cause: %s",
-                    e.toString());
             fail(e);
         } catch (Exception e) {
             Logging.log(Logging.ERROR, "Unhandled exception during request (cause: %s)",
