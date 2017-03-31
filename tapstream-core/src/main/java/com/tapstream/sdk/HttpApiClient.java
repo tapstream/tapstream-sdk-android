@@ -2,6 +2,7 @@ package com.tapstream.sdk;
 
 import com.tapstream.sdk.errors.ApiException;
 import com.tapstream.sdk.errors.EventAlreadyFiredException;
+import com.tapstream.sdk.errors.UnrecoverableApiException;
 import com.tapstream.sdk.http.AsyncHttpClient;
 import com.tapstream.sdk.http.AsyncHttpRequest;
 import com.tapstream.sdk.http.HttpClient;
@@ -432,6 +433,12 @@ public class HttpApiClient implements ApiClient {
 					JSONObject responseObject = new JSONObject(resp.getBodyAsString());
 					Lander lander = Lander.fromApiResponse(responseObject);
 					return new LanderApiResponse(resp, lander);
+				}
+				@Override
+				public void onFailure(UnrecoverableApiException e, HttpResponse resp){
+					if(resp.getStatus() == 404){
+						Logging.log(Logging.INFO, "No lander found for this session.");
+					} else{ this.onError(e); }
 				}
 			};
 

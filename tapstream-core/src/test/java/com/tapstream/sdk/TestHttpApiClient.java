@@ -407,4 +407,22 @@ public class TestHttpApiClient {
         assertThat(rewards.size(), is(0));
     }
 
+    @Test
+    public void testLanderAPIResponse() throws Exception{
+
+        String session = platform.loadSessionId();
+        URL expectedURL = RequestBuilders
+                .inAppLanderRequestBuilder(config.getDeveloperSecret(), session)
+                .build().getURL();
+
+        when(httpClient.sendRequest(urlEq(expectedURL))).thenReturn(new HttpResponse(404, "Not found"));
+
+        try {
+            HttpResponse resp = apiClient.getInAppLander().get().getHttpResponse();
+        }catch(Exception e){
+            Logging.log(Logging.INFO, e.getLocalizedMessage());
+        }
+
+    }
+
 }

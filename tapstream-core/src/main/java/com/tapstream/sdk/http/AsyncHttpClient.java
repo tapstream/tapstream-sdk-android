@@ -35,7 +35,7 @@ public class AsyncHttpClient implements Closeable {
             responseFuture.propagateCancellationTo(requestFuture);
         } catch (RuntimeException e){
             responseFuture.setException(e);
-            handler.onFailure();
+            handler.onError(e);
         }
 
         return responseFuture;
