@@ -144,8 +144,6 @@ public class HttpApiClient implements ApiClient {
         params.put("vendor", platform.getManufacturer());
         params.put("model", platform.getModel());
         params.put("os", platform.getOs());
-        params.put("resolution", platform.getResolution());
-        params.put("locale", platform.getLocale());
         params.put("app-name", platform.getAppName());
         params.put("app-version", platform.getAppVersion());
         params.put("package-name", platform.getPackageName());

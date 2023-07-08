@@ -7,9 +7,6 @@ import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.os.Build;
-import android.util.DisplayMetrics;
-import android.view.Display;
-import android.view.WindowManager;
 
 import com.tapstream.sdk.landers.Lander;
 import com.tapstream.sdk.wordofmouth.Reward;
@@ -67,15 +64,6 @@ class AndroidPlatform implements Platform {
     }
 
     @Override
-    public String getResolution() {
-        WindowManager wm = (WindowManager) this.app.getSystemService(Context.WINDOW_SERVICE);
-        Display display = wm.getDefaultDisplay();
-        DisplayMetrics metrics = new DisplayMetrics();
-        display.getMetrics(metrics);
-        return String.format(Locale.US, "%dx%d", metrics.widthPixels, metrics.heightPixels);
-    }
-
-    @Override
     public String getManufacturer() {
         try {
             return Build.MANUFACTURER;
@@ -92,11 +80,6 @@ class AndroidPlatform implements Platform {
     @Override
     public String getOs() {
         return String.format(Locale.US, "Android %s", Build.VERSION.RELEASE);
-    }
-
-    @Override
-    public String getLocale() {
-        return Locale.getDefault().toString();
     }
 
     @Override

@@ -27,7 +27,7 @@ public class TimelineSummaryResponse implements ApiResponse {
         if (arr == null) {
             return Collections.emptyList();
         }
-        
+
         List<String> strs = new ArrayList<>(arr.length());
         for (int ii = 0; ii < arr.length(); ii++) {
             strs.add(arr.getString(ii));

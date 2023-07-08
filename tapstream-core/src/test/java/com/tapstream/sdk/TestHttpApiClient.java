@@ -299,12 +299,6 @@ public class TestHttpApiClient {
         String expectedOs = "osValue";
         when(platform.getOs()).thenReturn(expectedOs);
 
-        String expectedResolution = "123x456";
-        when(platform.getResolution()).thenReturn(expectedResolution);
-
-        String expectedLocale = "EN_US";
-        when(platform.getLocale()).thenReturn(expectedLocale);
-
         String expectedAppName = "theAppName";
         when(platform.getAppName()).thenReturn(expectedAppName);
 
@@ -325,8 +319,6 @@ public class TestHttpApiClient {
         assertThat(commonParams.remove("vendor"), is(expectedVendor));
         assertThat(commonParams.remove("model"), is(expectedModel));
         assertThat(commonParams.remove("os"), is(expectedOs));
-        assertThat(commonParams.remove("resolution"), is(expectedResolution));
-        assertThat(commonParams.remove("locale"), is(expectedLocale));
         assertThat(commonParams.remove("app-name"), is(expectedAppName));
         assertThat(commonParams.remove("app-version"), is(expectedAppVersion));
         assertThat(commonParams.remove("package-name"), is(expectedPackageName));

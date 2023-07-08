@@ -7,39 +7,35 @@ import java.util.Set;
 import java.util.concurrent.Callable;
 
 public interface Platform {
-	String loadSessionId();
+    String loadSessionId();
 
-	Set<String> loadFiredEvents();
+    Set<String> loadFiredEvents();
 
-	void saveFiredEvents(Set<String> firedEvents);
+    void saveFiredEvents(Set<String> firedEvents);
 
-	String getResolution();
+    String getManufacturer();
 
-	String getManufacturer();
+    String getModel();
 
-	String getModel();
+    String getOs();
 
-	String getOs();
+    String getAppName();
 
-	String getLocale();
+    String getAppVersion();
 
-	String getAppName();
-	
-	String getAppVersion();
+    String getPackageName();
 
-	String getPackageName();
-	
-	String getReferrer();
+    String getReferrer();
 
-	boolean isConsumed(Reward reward);
+    boolean isConsumed(Reward reward);
 
-	void consumeReward(Reward reward);
+    void consumeReward(Reward reward);
 
-	Callable<AdvertisingID> getAdIdFetcher();
+    Callable<AdvertisingID> getAdIdFetcher();
 
-	ActivityEventSource getActivityEventSource();
+    ActivityEventSource getActivityEventSource();
 
-	boolean hasShown(Lander lander);
+    boolean hasShown(Lander lander);
 
-	void registerLanderShown(Lander lander);
+    void registerLanderShown(Lander lander);
 }
