@@ -52,7 +52,7 @@ public class MainActivity extends AppCompatActivity {
         TextView view;
         String text;
 
-        public TextUpdater(TextView view, String text){
+        public TextUpdater(TextView view, String text) {
             this.view = view;
             this.text = text;
         }
@@ -63,7 +63,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private void handleApiResponse(ApiFuture<EventApiResponse> responseFuture){
+    private void handleApiResponse(ApiFuture<EventApiResponse> responseFuture) {
         runOnUiThread(new TextUpdater(statusView, "Working!"));
 
         responseFuture.setCallback(new LoggingCallback<EventApiResponse>() {
@@ -81,31 +81,31 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    private void clearPrefs(String key){
+    private void clearPrefs(String key) {
         SharedPreferences.Editor editor = getSharedPreferences(key, 0).edit();
         editor.clear();
         editor.apply();
     }
 
-    private void clearState(){
+    private void clearState() {
         clearPrefs("TapstreamSDKFiredEvents");
         clearPrefs("TapstreamSDKUUID");
         clearPrefs("TapstreamWOMRewards");
         clearPrefs("TapstreamInAppLanders");
     }
 
-    private void lookupTimeline(){
+    private void lookupTimeline() {
         statusView.setText("Working!");
 
         final long startTime = System.currentTimeMillis();
         ApiFuture<TimelineApiResponse> timelineFuture = Tapstream.getInstance().lookupTimeline();
-        timelineFuture.setCallback(new Callback<TimelineApiResponse>(){
+        timelineFuture.setCallback(new Callback<TimelineApiResponse>() {
 
             @Override
             public void success(TimelineApiResponse result) {
                 final long timeDelta = System.currentTimeMillis() - startTime;
 
-                if (result.isEmpty()){
+                if (result.isEmpty()) {
                     runOnUiThread(new TextUpdater(statusView, "timeline was empty"));
                 } else {
                     try {
@@ -115,7 +115,7 @@ public class MainActivity extends AppCompatActivity {
                         String msg = String.format(Locale.US, "Timeline: %d hits, %d events (%dms)",
                                 numHits, numEvents, timeDelta);
                         runOnUiThread(new TextUpdater(statusView, msg));
-                    } catch (JSONException e){
+                    } catch (JSONException e) {
                         runOnUiThread(new TextUpdater(statusView, "Failed to parse timeline response"));
                     }
                 }
@@ -128,15 +128,15 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    private void lookupTimelineSummary(){
+    private void lookupTimelineSummary() {
         statusView.setText("Working...");
 
         Tapstream.getInstance().getTimelineSummary().setCallback(new Callback<TimelineSummaryResponse>() {
             @Override
             public void success(TimelineSummaryResponse result) {
-                if(result.isEmpty()){
+                if (result.isEmpty()) {
                     runOnUiThread(new TextUpdater(statusView, "Timeline summary was empty"));
-                }else{
+                } else {
 
                     String report = "Latest Deeplink: " +
                             result.getLatestDeeplink() +
@@ -158,7 +158,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-    public void onClickLookupOffer(View view){
+    public void onClickLookupOffer(View view) {
         statusView.setText("Working!");
         String insertionPoint = "test123";
         ApiFuture<OfferApiResponse> resp = Tapstream.getInstance().getWordOfMouthOffer(insertionPoint);
@@ -188,21 +188,21 @@ public class MainActivity extends AppCompatActivity {
                 WordOfMouth wom = Tapstream.getInstance().getWordOfMouth();
                 List<Reward> rewards = result.getRewards();
                 StringBuilder sb = new StringBuilder("Success: ")
-                    .append(rewards.size())
-                    .append(" rewards found.\n");
-                for(Reward r: rewards) {
+                        .append(rewards.size())
+                        .append(" rewards found.\n");
+                for (Reward r : rewards) {
                     sb.append("Reward(sku=")
-                        .append(r.getRewardSku())
-                        .append(", installs=")
-                        .append(r.getInstallCount())
-                        .append(", consumed=")
-                        .append(wom.isConsumed(r))
-                        .append(")\n");
-                    if(wom.isConsumed(r)){
+                            .append(r.getRewardSku())
+                            .append(", installs=")
+                            .append(r.getInstallCount())
+                            .append(", consumed=")
+                            .append(wom.isConsumed(r))
+                            .append(")\n");
+                    if (wom.isConsumed(r)) {
                         wom.consumeReward(r);
                         sb.append("You get a reward! (")
-                            .append(r.getRewardSku())
-                            .append(")\n");
+                                .append(r.getRewardSku())
+                                .append(")\n");
                     }
                 }
 
@@ -212,20 +212,20 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    public void onClickTestIAP(View view){
+    public void onClickTestIAP(View view) {
         Intent intent = new Intent(this, PurchaseActivity.class);
         startActivity(intent);
     }
 
-    public void onClickLookupTimeline(View view){
+    public void onClickLookupTimeline(View view) {
         lookupTimeline();
     }
 
-    public void onClickLookupTimelineSummary(View view){
+    public void onClickLookupTimelineSummary(View view) {
         lookupTimelineSummary();
     }
 
-    public void onClickFireEventWithParams(View view){
+    public void onClickFireEventWithParams(View view) {
         // Event with custom params
         Event e = new Event("custom-event", false);
         e.setCustomParameter("score", 15000);
@@ -233,22 +233,22 @@ public class MainActivity extends AppCompatActivity {
         handleApiResponse(Tapstream.getInstance().fireEvent(e));
     }
 
-    public void onClickFirePurchaseEvent(View view){
+    public void onClickFirePurchaseEvent(View view) {
         // Purchase event with a price
         handleApiResponse(Tapstream.getInstance().fireEvent(new Event("3da541559918a", "com.myapp.coinpack100", 1, 299, "USD")));
     }
 
-    public void onClickFirePurchaseEventNoPrice(View view){
+    public void onClickFirePurchaseEventNoPrice(View view) {
         // Purchase event with no price
         handleApiResponse(Tapstream.getInstance().fireEvent(new Event("3da541559918a", "com.myapp.coinpack100", 1)));
     }
 
-    public void onClearStateClicked(View view){
+    public void onClearStateClicked(View view) {
         clearState();
         statusView.setText("State cleared");
     }
 
-    public void onClickShowLander(View view){
+    public void onClickShowLander(View view) {
 
         final Activity mainActivity = this;
         final ILanderDelegate delegate = new ILanderDelegate() {
