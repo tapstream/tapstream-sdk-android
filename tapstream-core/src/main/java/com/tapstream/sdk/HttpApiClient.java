@@ -139,11 +139,6 @@ public class HttpApiClient implements ApiClient {
         Event.Params params = new Event.Params();
         params.put("secret", config.getDeveloperSecret());
         params.put("sdkversion", VersionInfo.getVersion());
-        params.put("hardware-odin1", config.getOdin1());
-        params.put("hardware-open-udid", config.getOpenUdid());
-        params.put("hardware-wifi-mac", config.getWifiMac());
-        params.put("hardware-android-device-id", config.getDeviceId());
-        params.put("hardware-android-android-id", config.getAndroidId());
         params.put("uuid", platform.loadSessionId());
         params.put("platform", "Android");
         params.put("vendor", platform.getManufacturer());

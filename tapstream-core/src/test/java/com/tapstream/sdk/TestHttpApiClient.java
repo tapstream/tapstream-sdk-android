@@ -147,7 +147,7 @@ public class TestHttpApiClient {
         config.setFireAutomaticInstallEvent(true);
 
         apiClient.start();
-        
+
         ArgumentCaptor<HttpRequest> requestCaptor = ArgumentCaptor.forClass(HttpRequest.class);
         Thread.sleep(200);
         verify(httpClient).sendRequest(requestCaptor.capture());
@@ -272,6 +272,7 @@ public class TestHttpApiClient {
 
     @Test
     public void testBuildCommonParams() throws Exception {
+        config.setCollectAdvertisingId(true);
         String expectedReferrer = "referrerValue";
         when(platform.getReferrer()).thenReturn(expectedReferrer);
 
@@ -313,23 +314,12 @@ public class TestHttpApiClient {
         String expectedPackageName = "com.test";
         when(platform.getPackageName()).thenReturn(expectedPackageName);
 
-        String expectedOdin1 = "odin1Value";
-        config.setOdin1(expectedOdin1);
-
-        String expectedOpenUdid = "openUdidValue";
-        config.setOpenUdid(expectedOpenUdid);
-
-        String expectedWifiMac = "wifiMacValue";
-        config.setWifiMac(expectedWifiMac);
 
         String expectedTZOffset = Long.toString(TimeZone.getDefault().getOffset((new Date()).getTime()) / 1000);
 
         Map<String, String> commonParams = apiClient.buildCommonEventParams().toMap();
         assertThat(commonParams.remove("secret"), is("theSecret"));
         assertThat(commonParams.remove("sdkversion"), is(VersionInfo.getVersion()));
-        assertThat(commonParams.remove("hardware-odin1"), is(expectedOdin1));
-        assertThat(commonParams.remove("hardware-open-udid"), is(expectedOpenUdid));
-        assertThat(commonParams.remove("hardware-wifi-mac"), is(expectedWifiMac));
         assertThat(commonParams.remove("uuid"), is(expectedSessionId));
         assertThat(commonParams.remove("platform"), is("Android"));
         assertThat(commonParams.remove("vendor"), is(expectedVendor));
