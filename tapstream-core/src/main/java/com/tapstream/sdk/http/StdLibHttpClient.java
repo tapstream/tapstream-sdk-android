@@ -8,7 +8,7 @@ import java.io.OutputStream;
 import java.net.HttpURLConnection;
 
 
-public class StdLibHttpClient implements HttpClient{
+public class StdLibHttpClient implements HttpClient {
 
     public static final int DEFAULT_CONNECT_TIMEOUT = 5000;
     public static final int DEFAULT_READ_TIMEOUT = 5000;
@@ -16,19 +16,19 @@ public class StdLibHttpClient implements HttpClient{
 
     @Override
     public HttpResponse sendRequest(HttpRequest request) throws IOException {
-        HttpURLConnection connection = (HttpURLConnection)request.getURL().openConnection();
+        HttpURLConnection connection = (HttpURLConnection) request.getURL().openConnection();
         connection.setConnectTimeout(DEFAULT_CONNECT_TIMEOUT);
         connection.setReadTimeout(DEFAULT_READ_TIMEOUT);
         connection.setUseCaches(false);
 
-        switch (request.getMethod()){
+        switch (request.getMethod()) {
             case GET:
                 connection.setRequestMethod("GET");
                 break;
             case POST:
                 connection.setRequestMethod("POST");
 
-                if (request.getBody() != null){
+                if (request.getBody() != null) {
                     String contentType = request.getBody().contentType();
                     byte[] bodyBytes = request.getBody().toBytes();
                     connection.setFixedLengthStreamingMode(bodyBytes.length);
@@ -55,12 +55,12 @@ public class StdLibHttpClient implements HttpClient{
             InputStream is;
             try {
                 is = connection.getInputStream();
-            } catch (IOException e){
+            } catch (IOException e) {
                 is = connection.getErrorStream();
             }
 
             byte[] responseBody;
-            try{
+            try {
                 responseBody = Utils.readFully(is);
             } finally {
                 if (is != null)
@@ -72,9 +72,9 @@ public class StdLibHttpClient implements HttpClient{
                     responseMsg,
                     responseBody);
 
-        } catch (IOException e){
+        } catch (IOException e) {
             throw e;
-        } catch (Exception e){
+        } catch (Exception e) {
             throw new IOException(e);
         }
     }

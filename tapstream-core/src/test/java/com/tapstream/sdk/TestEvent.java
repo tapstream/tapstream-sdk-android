@@ -1,5 +1,13 @@
 package com.tapstream.sdk;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.allOf;
+import static org.hamcrest.Matchers.hasEntry;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.not;
+import static org.hamcrest.Matchers.nullValue;
+import static org.mockito.Mockito.spy;
+
 import com.google.common.collect.ImmutableMap;
 import com.tapstream.sdk.http.FormPostBody;
 
@@ -11,16 +19,6 @@ import org.junit.Test;
 
 import java.util.HashMap;
 import java.util.Map;
-
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.allOf;
-import static org.hamcrest.Matchers.hasEntry;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.not;
-import static org.hamcrest.Matchers.nullValue;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.verify;
 
 
 public class TestEvent {
@@ -117,32 +115,33 @@ public class TestEvent {
         assertThat(actualBody, matchesJSONObject(expectedBody));
     }
 
-    static Matcher<String> matchesJSONObject(String jsonString){
+    static Matcher<String> matchesJSONObject(String jsonString) {
         return new JSONObjectMatcher(jsonString);
     }
 
     static class JSONObjectMatcher extends BaseMatcher<String> {
         String expected;
-        JSONObjectMatcher(String expected){
+
+        JSONObjectMatcher(String expected) {
             this.expected = expected;
         }
 
         @Override
         public boolean matches(Object actual) {
-            if(!(actual instanceof String)){
+            if (!(actual instanceof String)) {
                 return false;
             }
-            if(actual.equals(expected)){
+            if (actual.equals(expected)) {
                 return true;
             }
             JSONObject expectedJSON = new JSONObject(expected);
             JSONObject actualJSON = new JSONObject((String) actual);
-            if(expectedJSON.keySet().size() != actualJSON.keySet().size()){
+            if (expectedJSON.keySet().size() != actualJSON.keySet().size()) {
                 return false;
             }
 
-            for(Object k: expectedJSON.keySet()){
-                if(!actualJSON.get((String) k).equals(expectedJSON.get((String) k))){
+            for (String k : expectedJSON.keySet()) {
+                if (!actualJSON.get(k).equals(expectedJSON.get(k))) {
                     return false;
                 }
             }
@@ -221,7 +220,8 @@ public class TestEvent {
 
         FormPostBody body = event.buildPostBody(commonParams, globalCustomParams);
 
-        assertThat(body.getParams(), allOf(
+        @SuppressWarnings("unchecked")
+        Matcher<? super Map<String, String>>[] matchers = new Matcher[]{
                 hasEntry("custom-param1", "value1"),
                 hasEntry("custom-param2", "value2"),
                 hasEntry("common1", "commonValue1"),
@@ -229,7 +229,9 @@ public class TestEvent {
                 hasEntry(Event.PURCHASE_TRANSACTION_ID, orderId),
                 hasEntry(Event.PURCHASE_PRODUCT_ID, sku),
                 hasEntry(Event.PURCHASE_QUANTITY, Integer.toString(qty))
-        ));
+        };
+
+        assertThat(body.getParams(), allOf(matchers));
 
     }
 }

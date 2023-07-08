@@ -83,7 +83,7 @@ public class TestSettableApiFuture {
 
     @Test
     public void testCallbackSuccessDelayed() throws Exception {
-        final AtomicReference<Object> actual = new AtomicReference();
+        final AtomicReference<Object> actual = new AtomicReference<>();
         final Object expected = new Object();
 
         SettableApiFuture<Object> future = new SettableApiFuture<Object>();

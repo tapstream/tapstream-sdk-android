@@ -1,1 +1,20 @@
-include ':tapstream-example', ':tapstream-core', ':tapstream-android'
+pluginManagement {
+    repositories {
+        google()
+        mavenCentral()
+        gradlePluginPortal()
+    }
+}
+dependencyResolutionManagement {
+    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+    repositories {
+        google()
+        mavenCentral()
+    }
+}
+
+rootProject.name = "Tapstream Android SDK"
+
+include ':tapstream-example'
+include ':tapstream-core'
+include ':tapstream-android'

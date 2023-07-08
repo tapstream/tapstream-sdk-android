@@ -1,108 +1,84 @@
 // Top-level build file where you can add configuration options common to all sub-projects/modules.
 
-buildscript {
-    repositories {
-        jcenter()
-        maven {
-            url "https://plugins.gradle.org/m2/"
-        }
-    }
-    dependencies {
-        classpath 'com.android.tools.build:gradle:2.2.3'
-        classpath 'com.github.dcendents:android-maven-gradle-plugin:1.5'
-        classpath 'gradle.plugin.de.fuerstenau:BuildConfigPlugin:1.1.2'
-
-        // NOTE: Do not place your application dependencies here; they belong
-        // in the individual module build.gradle files
-    }
+plugins {
+    id 'com.android.application' version '8.0.2' apply false
+    id 'com.android.library' version '8.0.2' apply false
 }
 
-apply plugin: 'idea'
-
-
-allprojects {
-    repositories {
-        jcenter()
-    }
+tasks.withType(Javadoc) {
+    options.addStringOption('Xdoclint:none', '-quiet')
 }
 
-task clean(type: Delete) {
-    delete rootProject.buildDir
-}
-
-
-configure([project(':tapstream-core'), project(':tapstream-android')]) {
+configure([]) {
     def sonatypeUser = project.properties['sonatypeUser']
     def sonatypePass = project.properties['sonatypePass']
     def siteUrl = 'https://tapstream.com/developer/android/integration/'
-    def gitUrl = 'https://github.com/tapstream/tapstream-sdk-android.git'
-    def gitConn = 'scm:git:git@github.com:tapstream/tapstream-sdk.git'
+    def gitUrl = 'https://github.com/tapstream/tapstream-sdk-android'
+    def gitConn = 'scm:git:git@github.com:tapstream/tapstream-sdk-android.git'
 
-    apply plugin: 'maven'
+    apply plugin: 'maven-publish'
     apply plugin: 'signing'
 
-    afterEvaluate {project ->
 
-        uploadArchives {
-            repositories {
-                mavenDeployer {
-                    repository(url: 'https://oss.sonatype.org/service/local/staging/deploy/maven2/') {
-                        authentication(userName: sonatypeUser, password: sonatypePass)
-                    }
-
-                    snapshotRepository(url: 'https://oss.sonatype.org/content/repositories/snapshots'){
-                        authentication(userName: sonatypeUser, password: sonatypePass)
-                    }
-
-                    beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
-
-                    pom.project {
-                        name project.pomName
-                        packaging project.pomPackaging
-                        description project.pomDescription
-                        url siteUrl
-
-                        organization {
-                            name 'Tapstream'
-                            url 'https://tapstream.com'
-                        }
-
-                        licenses {
-                            license {
-                                name 'MIT License'
-                                url 'http://www.opensource.org/licenses/mit-license.php'
-                            }
-                        }
-                        developers {
-                            developer {
-                                id = 'adambard'
-                                name = 'Adam Bard'
-                                organization = 'Tapstream'
-                                organizationUrl = 'https://tapstream.com'
-                            }
-                            developer {
-                                id = 'nsitarz'
-                                name = 'Nick Sitarz'
-                                organization = 'Tapstream'
-                                organizationUrl = 'https://tapstream.com'
-                            }
-                        }
-                        scm {
-                            connection gitUrl
-                            developerConnection gitConn
-                            url gitConn
-
-                        }
-                    }
-
+    publishing {
+        repositories {
+            maven {
+                url 'https://oss.sonatype.org/service/local/staging/deploy/maven2/'
+                credentials {
+                    username sonatypeUser
+                    password sonatypePass
                 }
             }
         }
 
-        signing {
-            required { gradle.taskGraph.hasTask("uploadArchives") }
-            sign configurations.archives
+        publications {
+            mavenJava(MavenPublication) {
+                from(components.java)
+                pom {
+                    name project.pomName
+                    packaging project.pomPackaging
+                    description project.pomDescription
+                    url siteUrl
+
+                    organization {
+                        name 'Tapstream'
+                        url 'https://tapstream.com'
+                    }
+
+                    licenses {
+                        license {
+                            name 'MIT License'
+                            url 'http://www.opensource.org/licenses/mit-license.php'
+                        }
+                    }
+
+                    developers {
+                        developer {
+                            id = 'adambard'
+                            name = 'Adam Bard'
+                            organization = 'Tapstream'
+                            organizationUrl = 'https://tapstream.com'
+                        }
+                        developer {
+                            id = 'nsitarz'
+                            name = 'Nick Sitarz'
+                            organization = 'Tapstream'
+                            organizationUrl = 'https://tapstream.com'
+                        }
+                    }
+                    scm {
+                        connection gitConn
+                        developerConnection gitConn
+                        url gitUrl
+
+                    }
+                }
+            }
         }
+    }
+
+    signing {
+        sign publishing.publications.mavenJava
     }
 }
 

@@ -3,8 +3,6 @@ package com.tapstream.sdk.wordofmouth;
 import com.tapstream.sdk.ApiResponse;
 import com.tapstream.sdk.http.HttpResponse;
 
-import org.json.JSONObject;
-
 /**
  * Created by adam on 2016-04-20.
  */

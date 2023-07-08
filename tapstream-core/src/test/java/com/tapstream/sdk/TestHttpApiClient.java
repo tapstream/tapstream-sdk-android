@@ -1,5 +1,18 @@
 package com.tapstream.sdk;
 
+import static com.tapstream.sdk.matchers.RequestURLMatcher.urlEq;
+import static org.hamcrest.CoreMatchers.instanceOf;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.Assert.fail;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import com.google.common.io.Resources;
 import com.tapstream.sdk.errors.EventAlreadyFiredException;
 import com.tapstream.sdk.errors.RetriesExhaustedException;
@@ -32,21 +45,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-
-import static com.tapstream.sdk.matchers.RequestURLMatcher.urlEq;
-import static org.hamcrest.CoreMatchers.instanceOf;
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.Assert.fail;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyObject;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
 
 
 public class TestHttpApiClient {
@@ -149,14 +147,14 @@ public class TestHttpApiClient {
         config.setFireAutomaticInstallEvent(true);
 
         apiClient.start();
-
+        
         ArgumentCaptor<HttpRequest> requestCaptor = ArgumentCaptor.forClass(HttpRequest.class);
         Thread.sleep(200);
         verify(httpClient).sendRequest(requestCaptor.capture());
         assertThat(requestCaptor.getValue().getURL(), is(new URL("https://api.tapstream.com/accountName/event/android-testapp-install")));
     }
 
-    @Test
+    @Test(timeout = 1000)
     public void testEventInteractionWithClient() throws Exception {
         String appName = "appName";
         when(platform.getAppName()).thenReturn(appName);
@@ -164,8 +162,8 @@ public class TestHttpApiClient {
         apiClient.start();
         Event event = spy(new Event("eventName", false));
         apiClient.fireEvent(event).get();
-        //verify(event).prepare(appName);
-        //verify(event).buildPostBody(apiClient.getCommonEventParams(), config.getGlobalEventParams());
+        verify(event).prepare(appName);
+        verify(event).buildPostBody(apiClient.getCommonEventParams(), config.getGlobalEventParams());
         verify(httpClient).sendRequest(any(HttpRequest.class));
     }
 
@@ -181,8 +179,8 @@ public class TestHttpApiClient {
         verify(httpClient, times(2)).sendRequest(any(HttpRequest.class));
     }
 
-    @Test(timeout=1000)
-    public void testFireEventWithRetries() throws Exception{
+    @Test(timeout = 1000)
+    public void testFireEventWithRetries() throws Exception {
         apiClient.start();
         config.setDataCollectionRetryStrategy(new Retry.FixedDelay(100, 5, 1000));
         when(httpClient.sendRequest(any(HttpRequest.class)))
@@ -192,11 +190,11 @@ public class TestHttpApiClient {
         Event event = new Event("eventName", false);
         ApiFuture<EventApiResponse> firstResponse = apiClient.fireEvent(event);
         assertThat(firstResponse.get().getHttpResponse().getStatus(), is(200));
-        verify(httpClient, times(3)).sendRequest((HttpRequest) anyObject());
+        verify(httpClient, times(3)).sendRequest((HttpRequest) any());
     }
 
-    @Test(timeout=1000)
-    public void testFireEventWithRetriesExhausted() throws Exception{
+    @Test(timeout = 1000)
+    public void testFireEventWithRetriesExhausted() throws Exception {
         apiClient.start();
 
         config.setDataCollectionRetryStrategy(new Retry.FixedDelay(100, 1, 1000));
@@ -209,16 +207,16 @@ public class TestHttpApiClient {
         try {
             assertThat(firstResponse.get().getHttpResponse().getStatus(), is(200));
             fail("Expected retries exhausted exception");
-        } catch (ExecutionException e){
+        } catch (ExecutionException e) {
             assertThat(e.getCause(), is(instanceOf(RetriesExhaustedException.class)));
         }
 
-        verify(httpClient, times(1)).sendRequest((HttpRequest) anyObject());
+        verify(httpClient, times(1)).sendRequest((HttpRequest) any());
     }
 
 
     @Test
-    public void testFireEventWithHardFail() throws Exception{
+    public void testFireEventWithHardFail() throws Exception {
         apiClient.start();
 
         config.setDataCollectionRetryStrategy(new Retry.FixedDelay(100, 5, 1000));
@@ -232,11 +230,11 @@ public class TestHttpApiClient {
         try {
             assertThat(firstResponse.get().getHttpResponse().getStatus(), is(200));
             fail("Expected retries exhausted exception");
-        } catch (ExecutionException e){
+        } catch (ExecutionException e) {
             assertThat(e.getCause(), is(instanceOf(UnrecoverableApiException.class)));
         }
 
-        verify(httpClient, times(1)).sendRequest((HttpRequest) anyObject());
+        verify(httpClient, times(1)).sendRequest((HttpRequest) any());
     }
 
 
@@ -258,7 +256,7 @@ public class TestHttpApiClient {
 
 
     @Test(expected = EventAlreadyFiredException.class)
-    public void testPersistedOneTimeOnlyEvents() throws Throwable{
+    public void testPersistedOneTimeOnlyEvents() throws Throwable {
         apiClient.start();
         when(httpClient.sendRequest(any(HttpRequest.class))).thenReturn(new HttpResponse(200, "OK"));
         Event event = new Event("alreadyFired", true);
@@ -281,7 +279,7 @@ public class TestHttpApiClient {
         boolean expectedLimitAdTracking = true;
 
         final AdvertisingID expectedAdvertisingId = new AdvertisingID(expectedGAID, expectedLimitAdTracking);
-        when(platform.getAdIdFetcher()).thenReturn(new Callable<AdvertisingID>(){
+        when(platform.getAdIdFetcher()).thenReturn(new Callable<AdvertisingID>() {
 
             @Override
             public AdvertisingID call() throws Exception {
@@ -328,7 +326,7 @@ public class TestHttpApiClient {
 
         Map<String, String> commonParams = apiClient.buildCommonEventParams().toMap();
         assertThat(commonParams.remove("secret"), is("theSecret"));
-        assertThat(commonParams.remove("sdkversion"), is(HttpApiClient.VERSION));
+        assertThat(commonParams.remove("sdkversion"), is(VersionInfo.getVersion()));
         assertThat(commonParams.remove("hardware-odin1"), is(expectedOdin1));
         assertThat(commonParams.remove("hardware-open-udid"), is(expectedOpenUdid));
         assertThat(commonParams.remove("hardware-wifi-mac"), is(expectedWifiMac));
@@ -370,7 +368,7 @@ public class TestHttpApiClient {
     }
 
     @Test
-    public void testGetWordOfMouthRewardList() throws Exception{
+    public void testGetWordOfMouthRewardList() throws Exception {
         when(platform.loadSessionId()).thenReturn("my-uuid");
         URL expectedURL = RequestBuilders
                 .wordOfMouthRewardRequestBuilder(config.getDeveloperSecret(), "my-uuid")
@@ -389,7 +387,7 @@ public class TestHttpApiClient {
 
 
     @Test
-    public void testRewardAutoConsumption() throws Exception{
+    public void testRewardAutoConsumption() throws Exception {
 
         String session = platform.loadSessionId();
         URL expectedURL = RequestBuilders
@@ -408,7 +406,7 @@ public class TestHttpApiClient {
     }
 
     @Test
-    public void testLanderAPIResponse() throws Exception{
+    public void testLanderAPIResponse() throws Exception {
 
         String session = platform.loadSessionId();
         URL expectedURL = RequestBuilders
@@ -419,7 +417,7 @@ public class TestHttpApiClient {
 
         try {
             HttpResponse resp = apiClient.getInAppLander().get().getHttpResponse();
-        }catch(Exception e){
+        } catch (Exception e) {
             Logging.log(Logging.INFO, e.getLocalizedMessage());
         }
 

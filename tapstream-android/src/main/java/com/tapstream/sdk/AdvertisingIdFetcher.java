@@ -23,7 +23,10 @@ public class AdvertisingIdFetcher implements Callable<AdvertisingID> {
 		Method getId = infoCls.getMethod("getId");
 		String id = (String) getId.invoke(info);
 		Method isLimitAdTrackingEnabled = infoCls.getMethod("isLimitAdTrackingEnabled");
-		boolean limitAdTracking = (Boolean) isLimitAdTrackingEnabled.invoke(info);
+		Boolean limitAdTracking =  (Boolean) isLimitAdTrackingEnabled.invoke(info);
+		if (limitAdTracking == null) {
+			limitAdTracking = false;
+		}
 		return new AdvertisingID(id, limitAdTracking);
 	}
 }

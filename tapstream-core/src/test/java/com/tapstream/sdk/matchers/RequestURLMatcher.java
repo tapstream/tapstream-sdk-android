@@ -7,7 +7,7 @@ import org.hamcrest.TypeSafeMatcher;
 
 import java.net.URL;
 
-import static org.mockito.Matchers.argThat;
+import static org.mockito.hamcrest.MockitoHamcrest.argThat;
 
 
 public class RequestURLMatcher extends TypeSafeMatcher<HttpRequest> {

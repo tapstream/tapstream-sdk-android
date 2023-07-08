@@ -1,12 +1,8 @@
 package com.tapstream.sdk.wordofmouth;
 
 import com.tapstream.sdk.ApiResponse;
-import com.tapstream.sdk.Event;
 import com.tapstream.sdk.http.HttpResponse;
 
-import org.json.JSONArray;
-
-import java.util.ArrayList;
 import java.util.List;
 
 /**

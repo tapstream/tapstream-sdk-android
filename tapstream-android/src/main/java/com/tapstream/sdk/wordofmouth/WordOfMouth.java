@@ -3,10 +3,6 @@ package com.tapstream.sdk.wordofmouth;
 import android.app.Activity;
 import android.view.View;
 
-/**
- * Date: 15-05-01
- * Time: 1:46 PM
- */
 public interface WordOfMouth{
     /**
      * Displays the Word-of-Mouth offer overlay for the provided offer as

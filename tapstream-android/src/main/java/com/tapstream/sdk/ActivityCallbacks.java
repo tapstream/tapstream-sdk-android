@@ -1,14 +1,10 @@
-package com.tapstream.sdk.api14;
+package com.tapstream.sdk;
 
-import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.Application;
 import android.app.Application.ActivityLifecycleCallbacks;
 import android.os.Bundle;
 
-import com.tapstream.sdk.ActivityEventSource;
-
-@TargetApi(14)
 public class ActivityCallbacks extends ActivityEventSource implements ActivityLifecycleCallbacks {
 
 	private final Application app;

@@ -1,19 +1,18 @@
 package com.tapstream.sdk;
 
 
-import org.junit.Before;
-import org.junit.Test;
-
-import java.util.HashSet;
-import java.util.Set;
-
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.is;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-//import static org.mockito.Mockito.*;
+
+import org.junit.Before;
+import org.junit.Test;
+
+import java.util.HashSet;
+import java.util.Set;
 
 public class TestOneTimeOnlyEventTracker {
 

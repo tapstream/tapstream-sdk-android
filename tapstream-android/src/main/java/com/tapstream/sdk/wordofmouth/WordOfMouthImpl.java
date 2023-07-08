@@ -1,27 +1,16 @@
 package com.tapstream.sdk.wordofmouth;
 
 import android.app.Activity;
-import android.content.Context;
 import android.content.Intent;
-import android.graphics.Color;
-import android.util.Log;
-import android.view.Gravity;
 import android.view.View;
-import android.view.ViewGroup;
+import android.webkit.WebResourceRequest;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
-import android.widget.PopupWindow;
 
-import com.tapstream.sdk.Logging;
 import com.tapstream.sdk.Platform;
 import com.tapstream.sdk.PopupWebView;
-import com.tapstream.sdk.Tapstream;
 
 
-/**
- * Date: 15-05-01
- * Time: 1:50 PM
- */
 public class WordOfMouthImpl implements WordOfMouth{
     final Platform platform;
 
@@ -59,7 +48,8 @@ public class WordOfMouthImpl implements WordOfMouth{
 
         popup.showPopupWithMarkup(parent, o.getMarkup(), new WebViewClient(){
             @Override
-            public boolean shouldOverrideUrlLoading(WebView view, String url) {
+            public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
+                final String url = request.getUrl().toString();
                 if(url.endsWith("accept")){
                     Intent sendIntent = new Intent();
                     sendIntent.setAction(Intent.ACTION_SEND);

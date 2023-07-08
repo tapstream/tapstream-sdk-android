@@ -1,14 +1,15 @@
 package com.tapstream.sdk.example;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
-import android.text.TextUtils;
 import android.view.View;
 import android.widget.TextView;
+
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 
 import com.tapstream.sdk.ApiFuture;
 import com.tapstream.sdk.Callback;
@@ -33,7 +34,7 @@ import org.json.JSONObject;
 import java.util.List;
 import java.util.Locale;
 
-
+@SuppressLint("SetTextI18n")
 public class MainActivity extends AppCompatActivity {
 
     private TextView statusView;
@@ -46,7 +47,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private class TextUpdater implements Runnable {
+    private static class TextUpdater implements Runnable {
 
         TextView view;
         String text;
@@ -130,24 +131,22 @@ public class MainActivity extends AppCompatActivity {
     private void lookupTimelineSummary(){
         statusView.setText("Working...");
 
-        final long startTime = System.currentTimeMillis();
         Tapstream.getInstance().getTimelineSummary().setCallback(new Callback<TimelineSummaryResponse>() {
             @Override
             public void success(TimelineSummaryResponse result) {
                 if(result.isEmpty()){
                     runOnUiThread(new TextUpdater(statusView, "Timeline summary was empty"));
                 }else{
-                    StringBuilder report = new StringBuilder();
-                    report.append("Latest Deeplink: ");
-                    report.append(result.getLatestDeeplink());
-                    report.append("\n");
-                    report.append("Deeplinks: ");
-                    report.append(result.getDeeplinks().size());
 
-                    report.append(", Campaigns: ");
-                    report.append(result.getCampaigns().size());
+                    String report = "Latest Deeplink: " +
+                            result.getLatestDeeplink() +
+                            "\n" +
+                            "Deeplinks: " +
+                            result.getDeeplinks().size() +
+                            ", Campaigns: " +
+                            result.getCampaigns().size();
 
-                    runOnUiThread(new TextUpdater(statusView, report.toString()));
+                    runOnUiThread(new TextUpdater(statusView, report));
                 }
             }
 
@@ -170,14 +169,11 @@ public class MainActivity extends AppCompatActivity {
             public void success(OfferApiResponse result) {
                 final Offer o = result.getOffer();
                 // Bounce back to UI thread to show WOM offer.
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        statusView.setText("Success. Displaying offer.");
-                        WordOfMouth wom = Tapstream.getInstance().getWordOfMouth();
-                        View parent = findViewById(R.id.main_layout);
-                        wom.showOffer(mainActivity, parent, o);
-                    }
+                runOnUiThread(() -> {
+                    statusView.setText("Success. Displaying offer.");
+                    WordOfMouth wom = Tapstream.getInstance().getWordOfMouth();
+                    View parent = findViewById(R.id.main_layout);
+                    wom.showOffer(mainActivity, parent, o);
                 });
             }
         });
@@ -258,7 +254,7 @@ public class MainActivity extends AppCompatActivity {
         final ILanderDelegate delegate = new ILanderDelegate() {
             @Override
             public void showedLander(Lander lander) {
-                statusView.setText(String.format("Showed lander (id=%d)", lander.getId()));
+                statusView.setText(String.format(Locale.US, "Showed lander (id=%d)", lander.getId()));
             }
 
             @Override
@@ -278,13 +274,10 @@ public class MainActivity extends AppCompatActivity {
             public void success(LanderApiResponse result) {
                 final Lander lander = result.getLander();
 
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        View parent = findViewById(R.id.main_layout);
-                        statusView.setText("Showing lander (if one exists)...");
-                        Tapstream.getInstance().showLanderIfUnseen(mainActivity, parent, lander, delegate);
-                    }
+                runOnUiThread(() -> {
+                    View parent = findViewById(R.id.main_layout);
+                    statusView.setText("Showing lander (if one exists)...");
+                    Tapstream.getInstance().showLanderIfUnseen(mainActivity, parent, lander, delegate);
                 });
             }
 
@@ -299,12 +292,12 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
         setContentView(R.layout.activity_main);
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+
+        Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        statusView = (TextView)findViewById(R.id.textStatus);
+        statusView = findViewById(R.id.textStatus);
 
         Config config = new Config("sdktest", "YGP2pezGTI6ec48uti4o1w");
         config.setGlobalEventParameter("user_id", "92429d82a41e");

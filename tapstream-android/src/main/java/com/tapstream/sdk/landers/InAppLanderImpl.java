@@ -2,6 +2,7 @@ package com.tapstream.sdk.landers;
 
 import android.app.Activity;
 import android.view.View;
+import android.webkit.WebResourceRequest;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
@@ -29,8 +30,8 @@ public class InAppLanderImpl {
 
         final WebViewClient client = new WebViewClient(){
             @Override
-            public boolean shouldOverrideUrlLoading(WebView view, String url) {
-
+            public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
+                final String url = request.getUrl().toString();
                 if(url.endsWith("close") || url.endsWith("close/")) {
                     delegate.dismissedLander();
                     popup.dismiss();
