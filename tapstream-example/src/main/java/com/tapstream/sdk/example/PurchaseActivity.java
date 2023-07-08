@@ -28,8 +28,6 @@ import com.android.billingclient.api.SkuDetails;
 import com.tapstream.sdk.Event;
 import com.tapstream.sdk.Tapstream;
 
-import org.json.JSONException;
-
 import java.util.List;
 
 public class PurchaseActivity extends AppCompatActivity implements PurchasesUpdatedListener, BillingClientStateListener {
@@ -121,7 +119,6 @@ public class PurchaseActivity extends AppCompatActivity implements PurchasesUpda
 
         BillingFlowParams billingFlowParams = BillingFlowParams.newBuilder()
                 .setSkuDetails(new SkuDetails(MOCK_SKU_DETAILS))
-//                .setProductDetails(ProductDetails.OneTimePurchaseOfferDetails)
                 .build();
 
 
@@ -141,26 +138,29 @@ public class PurchaseActivity extends AppCompatActivity implements PurchasesUpda
         }
 
         for (Purchase purchase : purchases) {
-            try {
+            for (String productSku : purchase.getProducts()) {
                 Event event = new Event(
-                        purchase.getOriginalJson(),
-                        MOCK_SKU_DETAILS,
-                        purchase.getSignature());
+                        purchase.getOrderId(),
+                        productSku,
+                        purchase.getQuantity(),
+                        500,
+                        "USD"
+                );
 
+                event.setReceipt(purchase.getOriginalJson(), purchase.getSignature());
                 Tapstream.getInstance().fireEvent(event);
-
-                final Context ctx = this;
-                runOnUiThread(() -> {
-                    for (String sku : purchase.getProducts()) {
-                        ownedSkuListAdapter.add(sku);
-                        final String msg = "Purchased: " + sku;
-                        Toast.makeText(ctx, msg, Toast.LENGTH_SHORT).show();
-                        Log.i(TAG, msg);
-                    }
-                });
-            } catch (JSONException e) {
-                Log.e(TAG, "Failed to parse purchase data.", e);
             }
+
+            final Context ctx = this;
+            runOnUiThread(() -> {
+                for (String sku : purchase.getProducts()) {
+                    ownedSkuListAdapter.add(sku);
+                    final String msg = "Purchased: " + sku;
+                    Toast.makeText(ctx, msg, Toast.LENGTH_SHORT).show();
+                    Log.i(TAG, msg);
+                }
+            });
+
         }
     }
 
