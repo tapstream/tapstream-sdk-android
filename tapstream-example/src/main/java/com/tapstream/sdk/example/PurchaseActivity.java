@@ -21,23 +21,34 @@ import com.android.billingclient.api.BillingClientStateListener;
 import com.android.billingclient.api.BillingFlowParams;
 import com.android.billingclient.api.BillingResult;
 import com.android.billingclient.api.ConsumeParams;
+import com.android.billingclient.api.ProductDetails;
 import com.android.billingclient.api.Purchase;
 import com.android.billingclient.api.PurchasesUpdatedListener;
+import com.android.billingclient.api.QueryProductDetailsParams;
+import com.android.billingclient.api.QueryProductDetailsParams.Product;
 import com.android.billingclient.api.QueryPurchasesParams;
 import com.android.billingclient.api.SkuDetails;
 import com.tapstream.sdk.Event;
 import com.tapstream.sdk.Tapstream;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 public class PurchaseActivity extends AppCompatActivity implements PurchasesUpdatedListener, BillingClientStateListener {
 
     private static final String TAG = "ExamplePurchase";
 
-    public static final String MOCK_SKU_DETAILS =
-            "{\"price_amount_micros\": \"1000000\", \"title\": \"Test Purchase\", " +
-                    "\"price\": \"$1.00\", \"description\": \"Test Purchase\", \"type\": \"inapp\", " +
-                    "\"price_currency_code\": \"USD\", \"productId\": \"android.test.purchased\"}";
+    /**
+     * There's no more static SKU to test purchasing with. To test this feature, the app must be
+     * set up in the Play console with the following product ID configured, with all the various
+     * rigamarole (signing, uploading, releasing to test users) that entails.
+     * <a href="https://developer.android.com/google/play/billing/test">More Information</a>
+     */
+    private static final String EXAMPLE_PRODUCT_ID = "tapstream_example.test";
+
+    private ProductDetails exampleProductDetails;
 
     ArrayAdapter<CharSequence> ownedSkuListAdapter;
     Handler uiHandler;
@@ -79,10 +90,44 @@ public class PurchaseActivity extends AppCompatActivity implements PurchasesUpda
 
     @Override
     public void onBillingSetupFinished(BillingResult billingResult) {
-        Log.i(TAG, "Billing setup finished" + billingResult);
+        Log.i(TAG, "Billing setup finished: " + billingResult);
         if (billingResult.getResponseCode() == BillingResponseCode.OK) {
+            populateExampleProduct();
             refreshPurchaseList();
         }
+    }
+
+    private void populateExampleProduct() {
+        Product product = Product.newBuilder()
+                .setProductId(EXAMPLE_PRODUCT_ID)
+                .setProductType(BillingClient.ProductType.INAPP)
+                .build();
+
+        List<Product> productList = Collections.singletonList(product);
+
+        QueryProductDetailsParams queryProductDetailsParams = QueryProductDetailsParams.newBuilder()
+                 .setProductList(productList)
+                .build();
+
+        billingClient.queryProductDetailsAsync(queryProductDetailsParams, (billingResult, list) -> {
+
+            if (billingResult.getResponseCode() != BillingResponseCode.OK) {
+                Log.e(TAG, "Failed to list products: " + billingResult.getDebugMessage());
+                return;
+            }
+
+            if (list.isEmpty()) {
+                Log.w(TAG, "Product not found: " + EXAMPLE_PRODUCT_ID);
+            }
+
+            list.forEach(item -> {
+                if (EXAMPLE_PRODUCT_ID.equals(item.getProductId())) {
+                    this.exampleProductDetails = item;
+                } else {
+                    Log.w(TAG, "Found unexpected product ID: " + item.getProductId());
+                }
+            });
+        });
     }
 
     private void refreshPurchaseList() {
@@ -116,24 +161,35 @@ public class PurchaseActivity extends AppCompatActivity implements PurchasesUpda
      * @param view
      */
     public void onClickPurchase(View view) throws Exception {
+        if (this.exampleProductDetails == null) {
+            Log.e(TAG, "No product loaded. Are you running a valid release from Google Play?");
+            Toast.makeText(this, "No product found.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        BillingFlowParams.ProductDetailsParams productDetailsParams =
+                BillingFlowParams.ProductDetailsParams.newBuilder()
+                        .setProductDetails(this.exampleProductDetails)
+                        .build();
+
+        List<BillingFlowParams.ProductDetailsParams> productDetailsParamsList =
+                Collections.singletonList(productDetailsParams);
 
         BillingFlowParams billingFlowParams = BillingFlowParams.newBuilder()
-                .setSkuDetails(new SkuDetails(MOCK_SKU_DETAILS))
+                .setProductDetailsParamsList(productDetailsParamsList)
                 .build();
-
 
         BillingResult billingResult = billingClient.launchBillingFlow(this, billingFlowParams);
 
         if (billingResult.getResponseCode() != BillingResponseCode.OK) {
-            Log.e(TAG, "Faild to launch billing flow");
-            return;
+            Log.e(TAG, "Failed to launch billing flow");
         }
     }
 
     @Override
     public void onPurchasesUpdated(@NonNull BillingResult billingResult, @Nullable List<Purchase> purchases) {
-        if (billingResult.getResponseCode() != BillingResponseCode.OK || purchases != null) {
-            Log.e(TAG, "Error during purchase workflow" + billingResult.getDebugMessage());
+        if (billingResult.getResponseCode() != BillingResponseCode.OK || purchases == null) {
+            Log.e(TAG, "Error during purchase workflow: " + billingResult.getDebugMessage());
             return;
         }
 
