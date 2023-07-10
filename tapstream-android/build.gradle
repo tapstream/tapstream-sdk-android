@@ -1,6 +1,7 @@
 plugins {
     id 'com.android.library'
     id 'maven-publish'
+    id 'signing'
 }
 
 ext {
@@ -8,12 +9,16 @@ ext {
     pomPackaging = 'aar'
     pomName = 'Tapstream Android SDK'
     pomDescription = 'This library enables Tapstream tracking for your Android application'
+    releaseComponent = 'release'
 }
-
 
 android {
     namespace 'com.tapstream.sdk'
     compileSdk 33
+    
+    tasks.withType(JavaCompile) {
+        options.compilerArgs << "-Xlint:deprecation"
+    }
 
     defaultConfig {
         minSdk 24
@@ -41,6 +46,9 @@ android {
         }
     }
 
+    lintOptions {
+        warningsAsErrors true
+    }
 }
 
 dependencies {
@@ -50,12 +58,84 @@ dependencies {
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
     androidTestImplementation 'com.google.android.gms:play-services-ads-identifier:18.0.1'
 
-
     api(project(':tapstream-core')) {
         exclude group: 'org.json', module: 'json'
     }
 }
 
 
+def sonatypeUser = project.properties['sonatypeUser']
+def sonatypePass = project.properties['sonatypePass']
+
+def siteUrl = 'https://tapstream.com/developer/android/integration/'
+def gitUrl = 'https://github.com/tapstream/tapstream-sdk-android'
+def gitConn = 'scm:git:git@github.com:tapstream/tapstream-sdk-android.git'
+
+afterEvaluate {
+
+    publishing {
+        repositories {
+            maven {
+                def releasesRepoUrl = 'https://oss.sonatype.org/service/local/staging/deploy/maven2/'
+                def snapshotsRepoUrl = 'https://oss.sonatype.org/content/repositories/snapshots'
+                url = version.endsWith('SNAPSHOT') ? snapshotsRepoUrl : releasesRepoUrl
+                credentials {
+                    username = sonatypeUser
+                    password = sonatypePass
+                }
+            }
+        }
+
+        publications {
+            maven(MavenPublication) {
+                from(components[project.releaseComponent])
+
+                pom {
+                    name = project.pomName
+                    packaging = project.pomPackaging
+                    description = project.pomDescription
+                    url = siteUrl
+
+                    organization {
+                        name = 'Tapstream'
+                        url = 'https://tapstream.com'
+                    }
+
+                    licenses {
+                        license {
+                            name = 'MIT License'
+                            url = 'http://www.opensource.org/licenses/mit-license.php'
+                        }
+                    }
+
+                    developers {
+                        developer {
+                            id = 'adambard'
+                            name = 'Adam Bard'
+                            organization = 'Tapstream'
+                            organizationUrl = 'https://tapstream.com'
+                        }
+                        developer {
+                            id = 'nsitarz'
+                            name = 'Nick Sitarz'
+                            organization = 'Tapstream'
+                            organizationUrl = 'https://tapstream.com'
+                        }
+                    }
+                    scm {
+                        connection = gitConn
+                        developerConnection = gitConn
+                        url = gitUrl
+                    }
+                }
+            }
+        }
+    }
+
+    signing {
+        useGpgCmd()
+        sign publishing.publications.maven
+    }
+}
 
 

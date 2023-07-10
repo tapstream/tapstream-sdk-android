@@ -1,4 +1,16 @@
-apply plugin: 'java-library'
+plugins {
+    id 'java-library'
+    id 'maven-publish'
+    id 'signing'
+}
+
+ext {
+    deployable = true
+    pomPackaging = 'jar'
+    pomName = 'Tapstream Core Java SDK'
+    pomDescription = 'This library contains the building blocks for a Tapstream Java SDK'
+    releaseComponent = 'java'
+}
 
 java {
     withSourcesJar()
@@ -15,13 +27,80 @@ dependencies {
     testImplementation 'org.nanohttpd:nanohttpd:2.3.1'
     testImplementation "org.mockito:mockito-core:5.4.0"
     testImplementation 'com.google.guava:guava:32.1.1-jre'
-
 }
 
-ext {
-    deployable = true
-    pomPackaging = 'jar'
-    pomName = 'Tapstream Core Java SDK'
-    pomDescription = 'This library contains the building blocks for a Tapstream Java SDK'
+afterEvaluate {
+    def sonatypeUser = project.properties['sonatypeUser']
+    def sonatypePass = project.properties['sonatypePass']
+
+    def siteUrl = 'https://tapstream.com/developer/android/integration/'
+    def gitUrl = 'https://github.com/tapstream/tapstream-sdk-android'
+    def gitConn = 'scm:git:git@github.com:tapstream/tapstream-sdk-android.git'
+
+    publishing {
+        repositories {
+            maven {
+                def releasesRepoUrl = 'https://oss.sonatype.org/service/local/staging/deploy/maven2/'
+                def snapshotsRepoUrl = 'https://oss.sonatype.org/content/repositories/snapshots'
+                url = version.endsWith('SNAPSHOT') ? snapshotsRepoUrl : releasesRepoUrl
+                credentials {
+                    username = sonatypeUser
+                    password = sonatypePass
+                }
+            }
+        }
+
+        publications {
+            maven(MavenPublication) {
+
+                from(components[project.releaseComponent])
+
+                pom {
+                    name = project.pomName
+                    packaging = project.pomPackaging
+                    description = project.pomDescription
+                    url = siteUrl
+
+                    organization {
+                        name = 'Tapstream'
+                        url = 'https://tapstream.com'
+                    }
+
+                    licenses {
+                        license {
+                            name = 'MIT License'
+                            url = 'http://www.opensource.org/licenses/mit-license.php'
+                        }
+                    }
+
+                    developers {
+                        developer {
+                            id = 'adambard'
+                            name = 'Adam Bard'
+                            organization = 'Tapstream'
+                            organizationUrl = 'https://tapstream.com'
+                        }
+                        developer {
+                            id = 'nsitarz'
+                            name = 'Nick Sitarz'
+                            organization = 'Tapstream'
+                            organizationUrl = 'https://tapstream.com'
+                        }
+                    }
+                    scm {
+                        connection = gitConn
+                        developerConnection = gitConn
+                        url = gitUrl
+                    }
+                }
+            }
+        }
+    }
+
+    signing {
+        useGpgCmd()
+        sign publishing.publications.maven
+    }
 }
+
 
