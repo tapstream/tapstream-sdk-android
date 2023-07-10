@@ -20,7 +20,7 @@ public class AsyncHttpClient implements Closeable {
         this.executor = executor;
     }
 
-    public <T extends ApiResponse> ApiFuture<T> sendRequest(HttpRequest request, Retry.Strategy retryStrategy, AsyncHttpRequest.Handler<T> handler, SettableApiFuture<T> responseFuture){
+    public <T extends ApiResponse> ApiFuture<T> sendRequest(HttpRequest request, Retry.Strategy retryStrategy, AsyncHttpRequest.Handler<T> handler, SettableApiFuture<T> responseFuture) {
 
         try {
             AsyncHttpRequest<T> asyncRequest = new AsyncHttpRequest<T>(
@@ -28,12 +28,11 @@ public class AsyncHttpClient implements Closeable {
                     new Retry.Retryable<HttpRequest>(request, retryStrategy),
                     handler,
                     executor,
-
                     httpClient);
 
             Future<?> requestFuture = executor.submit(asyncRequest);
             responseFuture.propagateCancellationTo(requestFuture);
-        } catch (RuntimeException e){
+        } catch (RuntimeException e) {
             responseFuture.setException(e);
             handler.onError(e);
         }

@@ -33,423 +33,420 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class HttpApiClient implements ApiClient {
-	public static final String VERSION = BuildConfig.VERSION;
 
-	private final Platform platform;
-	private final Config config;
-	private final ScheduledExecutorService executor;
-	private final AtomicBoolean started = new AtomicBoolean(false);
-	private final AsyncHttpClient asyncClient;
-	private final OneTimeOnlyEventTracker oneTimeEventTracker;
+    private final Platform platform;
+    private final Config config;
+    private final ScheduledExecutorService executor;
+    private final AtomicBoolean started = new AtomicBoolean(false);
+    private final AsyncHttpClient asyncClient;
+    private final OneTimeOnlyEventTracker oneTimeEventTracker;
 
-	private boolean queueRequests = true;
-	private List<Runnable> queuedRequests = new ArrayList<Runnable>();
-	private Event.Params commonEventParams;
-
-
-	public HttpApiClient(Platform platform, Config config){
-		this(platform, config, new StdLibHttpClient(), Executors.newSingleThreadScheduledExecutor(new DaemonThreadFactory()));
-	}
-
-	public HttpApiClient(Platform platform, Config config, HttpClient client, ScheduledExecutorService executor) {
-		this.platform = platform;
-		this.config = config;
-		this.executor = executor;
-		this.asyncClient = new AsyncHttpClient(client, executor);
-		this.oneTimeEventTracker = new OneTimeOnlyEventTracker(platform);
-	}
+    private boolean queueRequests = true;
+    private List<Runnable> queuedRequests = new ArrayList<Runnable>();
+    private Event.Params commonEventParams;
 
 
-	/**
-	 * Visible for testing only.
-	 * @return the common event params.
+    public HttpApiClient(Platform platform, Config config) {
+        this(platform, config, new StdLibHttpClient(), Executors.newSingleThreadScheduledExecutor(new DaemonThreadFactory()));
+    }
+
+    public HttpApiClient(Platform platform, Config config, HttpClient client, ScheduledExecutorService executor) {
+        this.platform = platform;
+        this.config = config;
+        this.executor = executor;
+        this.asyncClient = new AsyncHttpClient(client, executor);
+        this.oneTimeEventTracker = new OneTimeOnlyEventTracker(platform);
+    }
+
+
+    /**
+     * Visible for testing only.
+     *
+     * @return the common event params.
      */
-	Event.Params getCommonEventParams(){
-		return commonEventParams;
-	}
+    Event.Params getCommonEventParams() {
+        return commonEventParams;
+    }
 
 
-	@Override
-	public void close() throws IOException {
-		Utils.closeQuietly(asyncClient);
+    @Override
+    public void close() throws IOException {
+        Utils.closeQuietly(asyncClient);
 
-		executor.shutdownNow();
-		try{
-			executor.awaitTermination(1, TimeUnit.SECONDS);
-		} catch (Exception e){
-			Logging.log(Logging.WARN, "Failed to shutdown executor");
-		}
-	}
+        executor.shutdownNow();
+        try {
+            executor.awaitTermination(1, TimeUnit.SECONDS);
+        } catch (Exception e) {
+            Logging.log(Logging.WARN, "Failed to shutdown executor");
+        }
+    }
 
 
-	public void start() {
+    public void start() {
 
-		if (!started.compareAndSet(false, true)) {
-			return;
-		}
+        if (!started.compareAndSet(false, true)) {
+            return;
+        }
 
-		final String appName = Utils.getOrDefault(platform.getAppName(), "");
+        final String appName = Utils.getOrDefault(platform.getAppName(), "");
 
-		if(config.getFireAutomaticInstallEvent()) {
-			String installEventName = config.getInstallEventName() == null
-					? String.format(Locale.US, "android-%s-install", appName)
-					: config.getInstallEventName();
+        if (config.getFireAutomaticInstallEvent()) {
+            String installEventName = config.getInstallEventName() == null
+                    ? String.format(Locale.US, "android-%s-install", appName)
+                    : config.getInstallEventName();
 
-			fireEvent(new Event(installEventName, true));
-		}
+            fireEvent(new Event(installEventName, true));
+        }
 
-		if(config.getFireAutomaticOpenEvent()) {
-			final String openEventName = config.getOpenEventName() == null
-					? String.format(Locale.US, "android-%s-open", appName)
-					: config.getOpenEventName();
+        if (config.getFireAutomaticOpenEvent()) {
+            final String openEventName = config.getOpenEventName() == null
+                    ? String.format(Locale.US, "android-%s-open", appName)
+                    : config.getOpenEventName();
 
-			ActivityEventSource eventSource = platform.getActivityEventSource();
+            ActivityEventSource eventSource = platform.getActivityEventSource();
 
-			if (eventSource == null || config.getActivityListenerBindsLate()) {
-				fireEvent(new Event(openEventName, false));
-			}
+            if (eventSource == null || config.getActivityListenerBindsLate()) {
+                fireEvent(new Event(openEventName, false));
+            }
 
-			if (eventSource != null){
-				eventSource.setListener(new ActivityEventSource.ActivityListener() {
-					@Override
-					public void onOpen() {
-						fireEvent(new Event(openEventName, false));
-					}
-				});
-			}
+            if (eventSource != null) {
+                eventSource.setListener(new ActivityEventSource.ActivityListener() {
+                    @Override
+                    public void onOpen() {
+                        fireEvent(new Event(openEventName, false));
+                    }
+                });
+            }
 
-		}
+        }
 
-		executor.submit(new Runnable() {
-			@Override
-			public void run() {
-				commonEventParams = buildCommonEventParams();
-				dispatchQueuedRequests();
-			}
-		});
-	}
+        executor.submit(new Runnable() {
+            @Override
+            public void run() {
+                commonEventParams = buildCommonEventParams();
+                dispatchQueuedRequests();
+            }
+        });
+    }
 
-	/**
-	 * Builds the event parameters that will be included with all events sent from this device.
-	 * This method must not be called in the main thread.
-	 * @return the event params.
+    /**
+     * Builds the event parameters that will be included with all events sent from this device.
+     * This method must not be called in the main thread.
+     *
+     * @return the event params.
      */
-	Event.Params buildCommonEventParams(){
-		Event.Params params = new Event.Params();
-		params.put("secret", config.getDeveloperSecret());
-		params.put("sdkversion", VERSION);
-		params.put("hardware-odin1", config.getOdin1());
-		params.put("hardware-open-udid", config.getOpenUdid());
-		params.put("hardware-wifi-mac", config.getWifiMac());
-		params.put("hardware-android-device-id", config.getDeviceId());
-		params.put("hardware-android-android-id", config.getAndroidId());
-		params.put("uuid", platform.loadSessionId());
-		params.put("platform", "Android");
-		params.put("vendor", platform.getManufacturer());
-		params.put("model", platform.getModel());
-		params.put("os", platform.getOs());
-		params.put("resolution", platform.getResolution());
-		params.put("locale", platform.getLocale());
-		params.put("app-name", platform.getAppName());
-		params.put("app-version", platform.getAppVersion());
-		params.put("package-name", platform.getPackageName());
+    Event.Params buildCommonEventParams() {
+        Event.Params params = new Event.Params();
+        params.put("secret", config.getDeveloperSecret());
+        params.put("sdkversion", VersionInfo.getVersion());
+        params.put("uuid", platform.loadSessionId());
+        params.put("platform", "Android");
+        params.put("vendor", platform.getManufacturer());
+        params.put("model", platform.getModel());
+        params.put("os", platform.getOs());
+        params.put("app-name", platform.getAppName());
+        params.put("app-version", platform.getAppVersion());
+        params.put("package-name", platform.getPackageName());
 
-		int offsetFromUtc = TimeZone.getDefault().getOffset((new Date()).getTime()) / 1000;
-		params.put("gmtoffset", Integer.toString(offsetFromUtc));
+        int offsetFromUtc = TimeZone.getDefault().getOffset((new Date()).getTime()) / 1000;
+        params.put("gmtoffset", Integer.toString(offsetFromUtc));
 
-		Callable<AdvertisingID> adIdFetcher = platform.getAdIdFetcher();
+        Callable<AdvertisingID> adIdFetcher = platform.getAdIdFetcher();
 
-		if (adIdFetcher != null && config.getCollectAdvertisingId()){
-			AdvertisingID advertisingIdInfo;
-			try{
-				advertisingIdInfo = adIdFetcher.call();
-			} catch (Exception e){
-				advertisingIdInfo = null;
-			}
+        if (adIdFetcher != null && config.getCollectAdvertisingId()) {
+            AdvertisingID advertisingIdInfo;
+            try {
+                advertisingIdInfo = adIdFetcher.call();
+            } catch (Exception e) {
+                advertisingIdInfo = null;
+            }
 
-			if (advertisingIdInfo != null && advertisingIdInfo.isValid()){
-				params.put("hardware-android-advertising-id", advertisingIdInfo.getId());
-				params.put("android-limit-ad-tracking", Boolean.toString(advertisingIdInfo.isLimitAdTracking()));
-			} else {
-				Logging.log(Logging.WARN, "Advertising ID could not be collected. Is Google Play Services installed?");
-			}
-		}
+            if (advertisingIdInfo != null && advertisingIdInfo.isValid()) {
+                params.put("hardware-android-advertising-id", advertisingIdInfo.getId());
+                params.put("android-limit-ad-tracking", Boolean.toString(advertisingIdInfo.isLimitAdTracking()));
+            } else {
+                Logging.log(Logging.WARN, "Advertising ID could not be collected. Is Google Play Services installed?");
+            }
+        }
 
-		String referrer = platform.getReferrer();
-		if(referrer != null && referrer.length() > 0) {
-			params.put("android-referrer", referrer);
-		}
+        String referrer = platform.getReferrer();
+        if (referrer != null && referrer.length() > 0) {
+            params.put("android-referrer", referrer);
+        }
 
-		return params;
-	}
+        return params;
+    }
 
-	private synchronized void dispatchQueuedRequests(){
-		queueRequests = false;
+    private synchronized void dispatchQueuedRequests() {
+        queueRequests = false;
 
-		for(Runnable r: queuedRequests) {
-			executor.submit(r);
-		}
+        for (Runnable r : queuedRequests) {
+            executor.submit(r);
+        }
 
-		queuedRequests = null;
-	}
+        queuedRequests = null;
+    }
 
 
-	@Override
-	public ApiFuture<EventApiResponse> fireEvent(final Event event) {
-		SettableApiFuture<EventApiResponse> responseFuture = new SettableApiFuture<EventApiResponse>();
-		try {
-			fireEvent(event, responseFuture);
-		} catch (Exception e){
-			responseFuture.setException(e);
-		}
-		return responseFuture;
-	}
+    @Override
+    public ApiFuture<EventApiResponse> fireEvent(final Event event) {
+        SettableApiFuture<EventApiResponse> responseFuture = new SettableApiFuture<EventApiResponse>();
+        try {
+            fireEvent(event, responseFuture);
+        } catch (Exception e) {
+            responseFuture.setException(e);
+        }
+        return responseFuture;
+    }
 
-	private void fireEvent(final Event event, final SettableApiFuture<EventApiResponse> responseFuture){
-		try {
-			synchronized (this){
-				if (queueRequests) {
-					queuedRequests.add(new Runnable() {
+    private void fireEvent(final Event event, final SettableApiFuture<EventApiResponse> responseFuture) {
+        try {
+            synchronized (this) {
+                if (queueRequests) {
+                    queuedRequests.add(new Runnable() {
 
-						@Override
-						public void run() {
-							fireEvent(event, responseFuture);
-						}
-					});
-					return;
-				}
-			}
+                        @Override
+                        public void run() {
+                            fireEvent(event, responseFuture);
+                        }
+                    });
+                    return;
+                }
+            }
 
-			event.prepare(Utils.getOrDefault(platform.getAppName(), ""));
+            event.prepare(Utils.getOrDefault(platform.getAppName(), ""));
 
-			if (event.isOneTimeOnly()) {
-				if (oneTimeEventTracker.hasBeenAlreadySent(event)) {
-					Logging.log(Logging.INFO, "Ignoring event named \"%s\" because it is a " +
-							"one-time-only event that has already been fired", event.getName());
-					responseFuture.setException(new EventAlreadyFiredException());
-					return;
-				}
-				oneTimeEventTracker.inProgress(event);
-			}
+            if (event.isOneTimeOnly()) {
+                if (oneTimeEventTracker.hasBeenAlreadySent(event)) {
+                    Logging.log(Logging.INFO, "Ignoring event named \"%s\" because it is a " +
+                            "one-time-only event that has already been fired", event.getName());
+                    responseFuture.setException(new EventAlreadyFiredException());
+                    return;
+                }
+                oneTimeEventTracker.inProgress(event);
+            }
 
-			final HttpRequest eventRequest = RequestBuilders
-					.eventRequestBuilder(config.getAccountName(), event.getName())
-					.postBody(event.buildPostBody(commonEventParams, config.getGlobalEventParams()))
-					.build();
-
-
-			AsyncHttpRequest.Handler<EventApiResponse> responseHandler = new AsyncHttpRequest.Handler<EventApiResponse>() {
-				@Override
-				public void onFailure() {
-					oneTimeEventTracker.failed(event);
-				}
-
-				@Override
-				public EventApiResponse checkedRun(HttpResponse response) throws IOException, ApiException {
-					Logging.log(Logging.INFO, "Fired event named \"%s\"", event.getName());
-					oneTimeEventTracker.sent(event);
-					return new EventApiResponse(response);
-				}
-			};
-
-			asyncClient.sendRequest(eventRequest, config.getDataCollectionRetryStrategy(), responseHandler, responseFuture);
+            final HttpRequest eventRequest = RequestBuilders
+                    .eventRequestBuilder(config.getAccountName(), event.getName())
+                    .postBody(event.buildPostBody(commonEventParams, config.getGlobalEventParams()))
+                    .build();
 
 
-		} catch (Exception e){
-			responseFuture.setException(e);
-		}
-	}
+            AsyncHttpRequest.Handler<EventApiResponse> responseHandler = new AsyncHttpRequest.Handler<EventApiResponse>() {
+                @Override
+                public void onFailure() {
+                    oneTimeEventTracker.failed(event);
+                }
 
-	@Override
-	public ApiFuture<TimelineApiResponse> lookupTimeline() {
-		final SettableApiFuture<TimelineApiResponse> responseFuture = new SettableApiFuture<TimelineApiResponse>();
-		try {
-			lookupTimeline(responseFuture);
-		} catch (Exception e){
-			responseFuture.setException(e);
-		}
-		return responseFuture;
-	}
+                @Override
+                public EventApiResponse checkedRun(HttpResponse response) throws IOException, ApiException {
+                    Logging.log(Logging.INFO, "Fired event named \"%s\"", event.getName());
+                    oneTimeEventTracker.sent(event);
+                    return new EventApiResponse(response);
+                }
+            };
 
-	private void lookupTimeline(final SettableApiFuture<TimelineApiResponse> responseFuture) {
-		try {
-			synchronized (this){
-				if (queueRequests) {
-					queuedRequests.add(new Runnable() {
-
-						@Override
-						public void run() {
-							lookupTimeline(responseFuture);
-						}
-					});
-					return;
-				}
-			}
-
-			final HttpRequest request = RequestBuilders
-					.timelineLookupRequestBuilder(config.getDeveloperSecret(), platform.loadSessionId())
-					.build();
-
-			AsyncHttpRequest.Handler<TimelineApiResponse> responseHandler = new AsyncHttpRequest.Handler<TimelineApiResponse>() {
-				@Override
-				public TimelineApiResponse checkedRun(HttpResponse resp) throws IOException, ApiException {
-					return new TimelineApiResponse(resp);
-				}
-			};
-
-			asyncClient.sendRequest(request, config.getUserFacingRequestRetryStrategy(), responseHandler, responseFuture);
-
-		} catch (Exception e) {
-			responseFuture.setException(e);
-			return;
-		}
-
-	}
-
-	@Override
-	public ApiFuture<TimelineSummaryResponse> getTimelineSummary() {
-		final SettableApiFuture<TimelineSummaryResponse> responseFuture = new SettableApiFuture<TimelineSummaryResponse>();
-		try {
-			getTimelineSummary(responseFuture);
-		} catch (Exception e){
-			responseFuture.setException(e);
-		}
-		return responseFuture;
-	}
-
-	private void getTimelineSummary(final SettableApiFuture<TimelineSummaryResponse> responseFuture) {
-		try {
-			synchronized (this){
-				if (queueRequests) {
-					queuedRequests.add(new Runnable() {
-
-						@Override
-						public void run() {
-							getTimelineSummary(responseFuture);
-						}
-					});
-					return;
-				}
-			}
-
-			final HttpRequest request = RequestBuilders
-					.timelineSummaryRequestBuilder(config.getDeveloperSecret(), platform.loadSessionId())
-					.build();
-
-			AsyncHttpRequest.Handler<TimelineSummaryResponse> responseHandler = new AsyncHttpRequest.Handler<TimelineSummaryResponse>() {
-				@Override
-				public TimelineSummaryResponse checkedRun(HttpResponse resp) throws IOException, ApiException {
-					return TimelineSummaryResponse.createSummaryResponse(resp);
-				}
-			};
-
-			asyncClient.sendRequest(request, config.getUserFacingRequestRetryStrategy(), responseHandler, responseFuture);
-
-		} catch (Exception e) {
-			responseFuture.setException(e);
-			return;
-		}
-
-	}
-
-	@Override
-	public ApiFuture<OfferApiResponse> getWordOfMouthOffer(final String insertionPoint) {
-		final SettableApiFuture<OfferApiResponse> responseFuture = new SettableApiFuture<OfferApiResponse>();
-
-		try{
-			final String bundle = platform.getPackageName();
-
-			final HttpRequest request = RequestBuilders
-					.wordOfMouthOfferRequestBuilder(config.getDeveloperSecret(), insertionPoint, bundle)
-					.build();
-
-			AsyncHttpRequest.Handler<OfferApiResponse> handler = new AsyncHttpRequest.Handler<OfferApiResponse>() {
-				@Override
-				public OfferApiResponse checkedRun(HttpResponse resp) throws IOException, ApiException {
-					JSONObject responseObject = new JSONObject(resp.getBodyAsString());
-					Offer offer = Offer.fromApiResponse(responseObject);
-					return new OfferApiResponse(resp, offer);
-				}
-			};
-
-			asyncClient.sendRequest(request, config.getUserFacingRequestRetryStrategy(), handler, responseFuture);
-
-		} catch (Exception e){
-			responseFuture.setException(e);
-		}
-
-		return responseFuture;
-
-	}
+            asyncClient.sendRequest(eventRequest, config.getDataCollectionRetryStrategy(), responseHandler, responseFuture);
 
 
-	@Override
-	public ApiFuture<RewardApiResponse> getWordOfMouthRewardList() {
-		final SettableApiFuture<RewardApiResponse> responseFuture = new SettableApiFuture<RewardApiResponse>();
+        } catch (Exception e) {
+            responseFuture.setException(e);
+        }
+    }
 
-		try {
-			final HttpRequest request = RequestBuilders
-					.wordOfMouthRewardRequestBuilder(config.getDeveloperSecret(), platform.loadSessionId())
-					.build();
+    @Override
+    public ApiFuture<TimelineApiResponse> lookupTimeline() {
+        final SettableApiFuture<TimelineApiResponse> responseFuture = new SettableApiFuture<TimelineApiResponse>();
+        try {
+            lookupTimeline(responseFuture);
+        } catch (Exception e) {
+            responseFuture.setException(e);
+        }
+        return responseFuture;
+    }
 
-			AsyncHttpRequest.Handler<RewardApiResponse> handler = new AsyncHttpRequest.Handler<RewardApiResponse>() {
-				@Override
-				public RewardApiResponse checkedRun(HttpResponse resp) throws IOException, ApiException {
+    private void lookupTimeline(final SettableApiFuture<TimelineApiResponse> responseFuture) {
+        try {
+            synchronized (this) {
+                if (queueRequests) {
+                    queuedRequests.add(new Runnable() {
 
-					JSONArray responseObject = new JSONArray(resp.getBodyAsString());
-					List<Reward> rewards = new ArrayList<Reward>(responseObject.length());
+                        @Override
+                        public void run() {
+                            lookupTimeline(responseFuture);
+                        }
+                    });
+                    return;
+                }
+            }
 
-					for (int ii = 0; ii < responseObject.length(); ii++) {
-						Reward reward = Reward.fromApiResponse(responseObject.getJSONObject(ii));
-						if (!platform.isConsumed(reward)) {
-							rewards.add(reward);
-						}
-					}
-					return new RewardApiResponse(resp, rewards);
-				}
-			};
+            final HttpRequest request = RequestBuilders
+                    .timelineLookupRequestBuilder(config.getDeveloperSecret(), platform.loadSessionId())
+                    .build();
 
-			asyncClient.sendRequest(request, config.getUserFacingRequestRetryStrategy(), handler, responseFuture);
+            AsyncHttpRequest.Handler<TimelineApiResponse> responseHandler = new AsyncHttpRequest.Handler<TimelineApiResponse>() {
+                @Override
+                public TimelineApiResponse checkedRun(HttpResponse resp) throws IOException, ApiException {
+                    return new TimelineApiResponse(resp);
+                }
+            };
 
-		} catch (Exception e){
-			responseFuture.setException(e);
-		}
+            asyncClient.sendRequest(request, config.getUserFacingRequestRetryStrategy(), responseHandler, responseFuture);
 
-		return responseFuture;
+        } catch (Exception e) {
+            responseFuture.setException(e);
+            return;
+        }
 
-	}
+    }
 
-	@Override
-	public ApiFuture<LanderApiResponse> getInAppLander() {
-		final SettableApiFuture<LanderApiResponse> responseFuture = new SettableApiFuture<LanderApiResponse>();
-		try {
-			final HttpRequest request = RequestBuilders
-					.inAppLanderRequestBuilder(config.getDeveloperSecret(), platform.loadSessionId())
-					.build();
+    @Override
+    public ApiFuture<TimelineSummaryResponse> getTimelineSummary() {
+        final SettableApiFuture<TimelineSummaryResponse> responseFuture = new SettableApiFuture<TimelineSummaryResponse>();
+        try {
+            getTimelineSummary(responseFuture);
+        } catch (Exception e) {
+            responseFuture.setException(e);
+        }
+        return responseFuture;
+    }
 
-			AsyncHttpRequest.Handler<LanderApiResponse> handler = new AsyncHttpRequest.Handler<LanderApiResponse>() {
-				@Override
-				public LanderApiResponse checkedRun(HttpResponse resp) throws IOException, ApiException {
-					JSONObject responseObject = new JSONObject(resp.getBodyAsString());
-					Lander lander = Lander.fromApiResponse(responseObject);
-					return new LanderApiResponse(resp, lander);
-				}
-				@Override
-				public void onFailure(UnrecoverableApiException e, HttpResponse resp){
-					if(resp.getStatus() == 404){
-						Logging.log(Logging.INFO, "No lander found for this session.");
-					} else{ this.onError(e); }
-				}
-			};
+    private void getTimelineSummary(final SettableApiFuture<TimelineSummaryResponse> responseFuture) {
+        try {
+            synchronized (this) {
+                if (queueRequests) {
+                    queuedRequests.add(new Runnable() {
 
-			asyncClient.sendRequest(request, config.getUserFacingRequestRetryStrategy(), handler, responseFuture);
+                        @Override
+                        public void run() {
+                            getTimelineSummary(responseFuture);
+                        }
+                    });
+                    return;
+                }
+            }
 
-		} catch (Exception e){
-			responseFuture.setException(e);
-		}
+            final HttpRequest request = RequestBuilders
+                    .timelineSummaryRequestBuilder(config.getDeveloperSecret(), platform.loadSessionId())
+                    .build();
 
-		return responseFuture;
+            AsyncHttpRequest.Handler<TimelineSummaryResponse> responseHandler = new AsyncHttpRequest.Handler<TimelineSummaryResponse>() {
+                @Override
+                public TimelineSummaryResponse checkedRun(HttpResponse resp) throws IOException, ApiException {
+                    return TimelineSummaryResponse.createSummaryResponse(resp);
+                }
+            };
 
-	}
+            asyncClient.sendRequest(request, config.getUserFacingRequestRetryStrategy(), responseHandler, responseFuture);
+
+        } catch (Exception e) {
+            responseFuture.setException(e);
+            return;
+        }
+
+    }
+
+    @Override
+    public ApiFuture<OfferApiResponse> getWordOfMouthOffer(final String insertionPoint) {
+        final SettableApiFuture<OfferApiResponse> responseFuture = new SettableApiFuture<OfferApiResponse>();
+
+        try {
+            final String bundle = platform.getPackageName();
+
+            final HttpRequest request = RequestBuilders
+                    .wordOfMouthOfferRequestBuilder(config.getDeveloperSecret(), insertionPoint, bundle)
+                    .build();
+
+            AsyncHttpRequest.Handler<OfferApiResponse> handler = new AsyncHttpRequest.Handler<OfferApiResponse>() {
+                @Override
+                public OfferApiResponse checkedRun(HttpResponse resp) throws IOException, ApiException {
+                    JSONObject responseObject = new JSONObject(resp.getBodyAsString());
+                    Offer offer = Offer.fromApiResponse(responseObject);
+                    return new OfferApiResponse(resp, offer);
+                }
+            };
+
+            asyncClient.sendRequest(request, config.getUserFacingRequestRetryStrategy(), handler, responseFuture);
+
+        } catch (Exception e) {
+            responseFuture.setException(e);
+        }
+
+        return responseFuture;
+
+    }
+
+
+    @Override
+    public ApiFuture<RewardApiResponse> getWordOfMouthRewardList() {
+        final SettableApiFuture<RewardApiResponse> responseFuture = new SettableApiFuture<RewardApiResponse>();
+
+        try {
+            final HttpRequest request = RequestBuilders
+                    .wordOfMouthRewardRequestBuilder(config.getDeveloperSecret(), platform.loadSessionId())
+                    .build();
+
+            AsyncHttpRequest.Handler<RewardApiResponse> handler = new AsyncHttpRequest.Handler<RewardApiResponse>() {
+                @Override
+                public RewardApiResponse checkedRun(HttpResponse resp) throws IOException, ApiException {
+
+                    JSONArray responseObject = new JSONArray(resp.getBodyAsString());
+                    List<Reward> rewards = new ArrayList<Reward>(responseObject.length());
+
+                    for (int ii = 0; ii < responseObject.length(); ii++) {
+                        Reward reward = Reward.fromApiResponse(responseObject.getJSONObject(ii));
+                        if (!platform.isConsumed(reward)) {
+                            rewards.add(reward);
+                        }
+                    }
+                    return new RewardApiResponse(resp, rewards);
+                }
+            };
+
+            asyncClient.sendRequest(request, config.getUserFacingRequestRetryStrategy(), handler, responseFuture);
+
+        } catch (Exception e) {
+            responseFuture.setException(e);
+        }
+
+        return responseFuture;
+
+    }
+
+    @Override
+    public ApiFuture<LanderApiResponse> getInAppLander() {
+        final SettableApiFuture<LanderApiResponse> responseFuture = new SettableApiFuture<LanderApiResponse>();
+        try {
+            final HttpRequest request = RequestBuilders
+                    .inAppLanderRequestBuilder(config.getDeveloperSecret(), platform.loadSessionId())
+                    .build();
+
+            AsyncHttpRequest.Handler<LanderApiResponse> handler = new AsyncHttpRequest.Handler<LanderApiResponse>() {
+                @Override
+                public LanderApiResponse checkedRun(HttpResponse resp) throws IOException, ApiException {
+                    JSONObject responseObject = new JSONObject(resp.getBodyAsString());
+                    Lander lander = Lander.fromApiResponse(responseObject);
+                    return new LanderApiResponse(resp, lander);
+                }
+
+                @Override
+                public void onFailure(UnrecoverableApiException e, HttpResponse resp) {
+                    if (resp.getStatus() == 404) {
+                        Logging.log(Logging.INFO, "No lander found for this session.");
+                    } else {
+                        this.onError(e);
+                    }
+                }
+            };
+
+            asyncClient.sendRequest(request, config.getUserFacingRequestRetryStrategy(), handler, responseFuture);
+
+        } catch (Exception e) {
+            responseFuture.setException(e);
+        }
+
+        return responseFuture;
+
+    }
 
 }

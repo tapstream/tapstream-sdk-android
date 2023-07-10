@@ -2,122 +2,132 @@ package com.tapstream.sdk;
 
 public class Config {
 
-	private final String accountName;
-	private final String developerSecret;
+    private final String accountName;
+    private final String developerSecret;
 
-	public Config(String accountName, String developerSecret){
-		this.accountName = accountName;
-		this.developerSecret = developerSecret;
-	}
+    public Config(String accountName, String developerSecret) {
+        this.accountName = accountName;
+        this.developerSecret = developerSecret;
+    }
 
-	private Retry.Strategy dataCollectionRetryStrategy = Retry.DEFAULT_DATA_COLLECTION_STRATEGY;
-	private Retry.Strategy userFacingRequestRetryStrategy = Retry.DEFAULT_USER_FACING_RETRY_STRATEGY;
+    private Retry.Strategy dataCollectionRetryStrategy = Retry.DEFAULT_DATA_COLLECTION_STRATEGY;
+    private Retry.Strategy userFacingRequestRetryStrategy = Retry.DEFAULT_USER_FACING_RETRY_STRATEGY;
 
-	// Optional hardware identifiers that can be provided by the caller
-	private String odin1 = null;
-	private String openUdid = null;
-	private String wifiMac = null;
-	private String deviceId = null;
-	private String androidId = null;
+    // Set these if you want to override the names of the automatic events sent by the sdk
+    private String installEventName = null;
+    private String openEventName = null;
 
-	// Set these if you want to override the names of the automatic events sent by the sdk
-	private String installEventName = null;
-	private String openEventName = null;
+    // Unset these if you want to disable the sending of the automatic events
+    private boolean fireAutomaticInstallEvent = true;
+    private boolean fireAutomaticOpenEvent = true;
+
+    // Unset this if you want to disable automatic collection of Android Advertising Id
+    private boolean collectAdvertisingId = false;
+
+    // Unset this to save a little memory by not using the WordOfMouth feature.
+    private boolean useWordOfMouth = false;
+
+    // Unset this to save a bit more memory by not using the InAppLanders feature.
+    private boolean useInAppLanders = false;
+
+    // These parameters will be automatically attached to all events fired by the sdk.
+    private final Event.Params globalEventParams = new Event.Params();
+
+    private boolean activityListenerBindsLate = false;
+
+    public String getAccountName() {
+        return accountName;
+    }
+
+    public String getDeveloperSecret() {
+        return developerSecret;
+    }
+
+    public void setGlobalEventParameter(String name, Object value) {
+        globalEventParams.put(name, value.toString());
+    }
+
+    public Event.Params getGlobalEventParams() {
+        return globalEventParams;
+    }
 	
-	// Unset these if you want to disable the sending of the automatic events
-	private boolean fireAutomaticInstallEvent = true;
-	private boolean fireAutomaticOpenEvent = true;
+    public String getInstallEventName() {
+        return installEventName;
+    }
 
-	// Unset this if you want to disable automatic collection of Android Advertising Id
-	private boolean collectAdvertisingId = true;
+    public void setInstallEventName(String name) {
+        installEventName = name;
+    }
 
-	// Unset this to save a little memory by not using the WordOfMouth feature.
-	private boolean useWordOfMouth = false;
+    public String getOpenEventName() {
+        return openEventName;
+    }
 
-	// Unset this to save a bit more memory by not using the InAppLanders feature.
-	private boolean useInAppLanders = false;
-	
-	// These parameters will be automatically attached to all events fired by the sdk.
-	private final Event.Params globalEventParams = new Event.Params();
+    public void setOpenEventName(String name) {
+        openEventName = name;
+    }
 
-	private boolean activityListenerBindsLate = false;
+    public boolean getFireAutomaticInstallEvent() {
+        return fireAutomaticInstallEvent;
+    }
 
-	public String getAccountName(){
-		return accountName;
-	}
+    public void setFireAutomaticInstallEvent(boolean fire) {
+        fireAutomaticInstallEvent = fire;
+    }
 
-	public String getDeveloperSecret(){
-		return developerSecret;
-	}
+    public boolean getFireAutomaticOpenEvent() {
+        return fireAutomaticOpenEvent;
+    }
 
-	public void setGlobalEventParameter(String name, Object value){
-		globalEventParams.put(name, value.toString());
-	}
+    public void setFireAutomaticOpenEvent(boolean fire) {
+        fireAutomaticOpenEvent = fire;
+    }
 
-	public Event.Params getGlobalEventParams(){
-		return globalEventParams;
-	}
+    public boolean getCollectAdvertisingId() {
+        return collectAdvertisingId;
+    }
 
-	public String getOdin1() { return odin1; }
-	public void setOdin1(String odin1) { this.odin1 = odin1; }
+    public void setCollectAdvertisingId(boolean collect) {
+        collectAdvertisingId = collect;
+    }
 
-	public String getOpenUdid() { return openUdid; }
-	public void setOpenUdid(String openUdid) { this.openUdid = openUdid; }
+    public boolean getUseWordOfMouth() {
+        return useWordOfMouth;
+    }
 
-	public String getDeviceId(){ return deviceId; }
-	public void setDeviceId(String deviceId){ this.deviceId = deviceId; }
+    public void setUseWordOfMouth(boolean v) {
+        useWordOfMouth = v;
+    }
 
-	public String getWifiMac(){ return wifiMac; }
-	public void setWifiMac(String wifiMac){ this.wifiMac = wifiMac; }
+    public boolean getUseInAppLanders() {
+        return useInAppLanders;
+    }
 
-	public String getAndroidId(){ return androidId; }
-	public void setAndroidId(String androidId){ this.androidId = androidId; }
+    public void setUseInAppLanders(boolean useInAppLanders) {
+        this.useInAppLanders = useInAppLanders;
+    }
 
-	public String getInstallEventName() { return installEventName; }
-	public void setInstallEventName(String name) { installEventName = name; }
+    public Retry.Strategy getDataCollectionRetryStrategy() {
+        return dataCollectionRetryStrategy;
+    }
 
-	public String getOpenEventName() { return openEventName; }
-	public void setOpenEventName(String name) { openEventName = name; }
+    public void setDataCollectionRetryStrategy(Retry.Strategy dataCollectionRetryStrategy) {
+        this.dataCollectionRetryStrategy = dataCollectionRetryStrategy;
+    }
 
-	public boolean getFireAutomaticInstallEvent() { return fireAutomaticInstallEvent; }
-	public void setFireAutomaticInstallEvent(boolean fire) { fireAutomaticInstallEvent = fire; }
+    public Retry.Strategy getUserFacingRequestRetryStrategy() {
+        return userFacingRequestRetryStrategy;
+    }
 
-	public boolean getFireAutomaticOpenEvent() { return fireAutomaticOpenEvent; }
-	public void setFireAutomaticOpenEvent(boolean fire) { fireAutomaticOpenEvent = fire; }
+    public void setUserFacingRequestRetryStrategy(Retry.Strategy userFacingRequestRetryStrategy) {
+        this.userFacingRequestRetryStrategy = userFacingRequestRetryStrategy;
+    }
 
-	public boolean getCollectAdvertisingId() { return collectAdvertisingId; }
-	public void setCollectAdvertisingId(boolean collect) { collectAdvertisingId = collect; }
+    public boolean getActivityListenerBindsLate() {
+        return activityListenerBindsLate;
+    }
 
-	public boolean getUseWordOfMouth(){return useWordOfMouth;}
-	public void setUseWordOfMouth(boolean v){ useWordOfMouth = v;}
-
-	public boolean getUseInAppLanders() { return useInAppLanders; }
-
-	public void setUseInAppLanders(boolean useInAppLanders) {
-		this.useInAppLanders = useInAppLanders;
-	}
-
-	public Retry.Strategy getDataCollectionRetryStrategy() {
-		return dataCollectionRetryStrategy;
-	}
-
-	public void setDataCollectionRetryStrategy(Retry.Strategy dataCollectionRetryStrategy) {
-		this.dataCollectionRetryStrategy = dataCollectionRetryStrategy;
-	}
-
-	public Retry.Strategy getUserFacingRequestRetryStrategy() {
-		return userFacingRequestRetryStrategy;
-	}
-
-	public void setUserFacingRequestRetryStrategy(Retry.Strategy userFacingRequestRetryStrategy) {
-		this.userFacingRequestRetryStrategy = userFacingRequestRetryStrategy;
-	}
-
-	public boolean getActivityListenerBindsLate() {
-		return activityListenerBindsLate;
-	}
-
-	public void setActivityListenerBindsLate(boolean activityListenerBindsLate) {
-		this.activityListenerBindsLate = activityListenerBindsLate;
-	}
+    public void setActivityListenerBindsLate(boolean activityListenerBindsLate) {
+        this.activityListenerBindsLate = activityListenerBindsLate;
+    }
 }

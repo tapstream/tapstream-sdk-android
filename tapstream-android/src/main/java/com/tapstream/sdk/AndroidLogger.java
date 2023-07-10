@@ -17,8 +17,6 @@ public class AndroidLogger implements Logging.Logger{
                 priority = android.util.Log.WARN;
                 break;
             case Logging.ERROR:
-                priority = android.util.Log.ERROR;
-                break;
             default:
                 priority = android.util.Log.ERROR;
                 break;

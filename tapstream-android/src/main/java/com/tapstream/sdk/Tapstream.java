@@ -2,7 +2,6 @@ package com.tapstream.sdk;
 
 import android.app.Activity;
 import android.app.Application;
-import android.app.Service;
 import android.view.View;
 
 import com.tapstream.sdk.landers.ILanderDelegate;

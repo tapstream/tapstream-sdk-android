@@ -1,10 +1,16 @@
 package com.tapstream.sdk;
 
-import android.content.Intent;
-import android.os.Build;
-import android.support.test.runner.AndroidJUnit4;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.allOf;
+import static org.hamcrest.Matchers.instanceOf;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.Matchers.nullValue;
 
-import com.tapstream.sdk.api14.ActivityCallbacks;
+import android.content.Intent;
+
+import androidx.test.ext.junit.runners.AndroidJUnit4;
+
 import com.tapstream.sdk.landers.Lander;
 import com.tapstream.sdk.wordofmouth.Reward;
 
@@ -16,13 +22,6 @@ import org.junit.runner.RunWith;
 
 import java.io.InputStream;
 import java.util.Set;
-
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.allOf;
-import static org.hamcrest.Matchers.instanceOf;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.hamcrest.Matchers.nullValue;
 
 
 @RunWith(AndroidJUnit4.class)
@@ -48,7 +47,7 @@ public class TestAndroidPlatform extends BaseAndroidTest {
     @Test
     public void testPersistFiredEvents() throws Exception {
         Set<String> firedEvents = platform.loadFiredEvents();
-        assertThat(firedEvents, is(Matchers.<String>empty()));
+        assertThat(firedEvents, is(Matchers.empty()));
         firedEvents.add("eventName");
         platform.saveFiredEvents((firedEvents));
         assertThat(platform.loadFiredEvents(), is(firedEvents));
@@ -105,15 +104,9 @@ public class TestAndroidPlatform extends BaseAndroidTest {
 
     @Test
     public void testGetActivityEventSource() throws Exception {
-        if (Build.VERSION.SDK_INT >= 14){
-            // Should return a real implementation
-            Object aes = platform.getActivityEventSource();
-            assertThat(aes, is(notNullValue()));
-            assertThat(aes, instanceOf(ActivityCallbacks.class));
-        } else {
-            Object aes = platform.getActivityEventSource();
-            assertThat(aes, is(nullValue()));
-        }
+        Object aes = platform.getActivityEventSource();
+        assertThat(aes, is(notNullValue()));
+        assertThat(aes, instanceOf(ActivityCallbacks.class));
     }
 
     @Test

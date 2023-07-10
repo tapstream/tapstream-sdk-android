@@ -7,14 +7,12 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Created by adam on 2016-10-13.
- */
 
 public class TimelineSummaryResponse implements ApiResponse {
     private final HttpResponse httpResponse;
@@ -26,27 +24,33 @@ public class TimelineSummaryResponse implements ApiResponse {
     private final Map<String, String> eventParams;
 
     private static List<String> jsonArrayToStringList(JSONArray arr) {
-        List<String> strs = new ArrayList<String>(arr.length());
-        if(arr != null) {
-            for (int ii = 0; ii < arr.length(); ii++) {
-                strs.add(arr.getString(ii));
-            }
+        if (arr == null) {
+            return Collections.emptyList();
         }
+
+        List<String> strs = new ArrayList<>(arr.length());
+        for (int ii = 0; ii < arr.length(); ii++) {
+            strs.add(arr.getString(ii));
+        }
+
         return strs;
     }
 
-    private static Map<String, String> jsonObjectToStringMap(JSONObject obj){
-        Map<String, String> strs = new HashMap<String, String>(obj.length());
-        if(obj != null) {
-            Iterator ks = obj.keys();
-            while(ks.hasNext()) {
-                String k = (String) ks.next();
-                strs.put(k, obj.getString(k));
-            }
+    private static Map<String, String> jsonObjectToStringMap(JSONObject obj) {
+        if (obj == null) {
+            return Collections.emptyMap();
         }
+
+        Map<String, String> strs = new HashMap<>(obj.length());
+
+        Iterator<String> ks = obj.keys();
+        while (ks.hasNext()) {
+            String k = ks.next();
+            strs.put(k, obj.getString(k));
+        }
+
         return strs;
     }
-
 
     static TimelineSummaryResponse createSummaryResponse(HttpResponse response) {
         String rawResponse = response.getBodyAsString();
@@ -63,13 +67,13 @@ public class TimelineSummaryResponse implements ApiResponse {
                 return new TimelineSummaryResponse(response, latestDeeplink, latestDeeplinkTimestamp,
                         deeplinks, campaigns, hitParams, eventParams);
             }
-        }catch(JSONException e){
+        } catch (JSONException e) {
             Logging.log(Logging.WARN, "JSON decode error from timeline summary: (%s)", e.getMessage());
         }
         return new TimelineSummaryResponse(response);
     }
 
-    public TimelineSummaryResponse(HttpResponse httpResponse){
+    public TimelineSummaryResponse(HttpResponse httpResponse) {
         this.httpResponse = httpResponse;
         this.latestDeeplink = null;
         this.latestDeeplinkTimestamp = -1L;
@@ -101,6 +105,7 @@ public class TimelineSummaryResponse implements ApiResponse {
         return (eventParams == null || eventParams.isEmpty())
                 && (campaigns == null || campaigns.isEmpty());  // Sufficient
     }
+
     public String getLatestDeeplink() {
         return latestDeeplink;
     }

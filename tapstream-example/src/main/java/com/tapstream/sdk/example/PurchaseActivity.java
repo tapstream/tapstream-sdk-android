@@ -1,64 +1,59 @@
 package com.tapstream.sdk.example;
 
-import android.app.PendingIntent;
-import android.content.ComponentName;
+import static com.android.billingclient.api.BillingClient.BillingResponseCode;
+
 import android.content.Context;
-import android.content.Intent;
-import android.content.ServiceConnection;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.IBinder;
 import android.os.Looper;
-import android.os.RemoteException;
-import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.Toast;
 
-import com.android.vending.billing.IInAppBillingService;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
+
+import com.android.billingclient.api.BillingClient;
+import com.android.billingclient.api.BillingClientStateListener;
+import com.android.billingclient.api.BillingFlowParams;
+import com.android.billingclient.api.BillingResult;
+import com.android.billingclient.api.ConsumeParams;
+import com.android.billingclient.api.ProductDetails;
+import com.android.billingclient.api.Purchase;
+import com.android.billingclient.api.PurchasesUpdatedListener;
+import com.android.billingclient.api.QueryProductDetailsParams;
+import com.android.billingclient.api.QueryProductDetailsParams.Product;
+import com.android.billingclient.api.QueryPurchasesParams;
+import com.android.billingclient.api.SkuDetails;
 import com.tapstream.sdk.Event;
 import com.tapstream.sdk.Tapstream;
 
-import org.json.JSONException;
-import org.json.JSONObject;
-
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
-public class PurchaseActivity extends AppCompatActivity {
+public class PurchaseActivity extends AppCompatActivity implements PurchasesUpdatedListener, BillingClientStateListener {
 
     private static final String TAG = "ExamplePurchase";
 
-    public static final String MOCK_SKU_DETAILS =
-            "{\"price_amount_micros\": \"1000000\", \"title\": \"Test Purchase\", " +
-            "\"price\": \"$1.00\", \"description\": \"Test Purchase\", \"type\": \"inapp\", " +
-            "\"price_currency_code\": \"USD\", \"productId\": \"android.test.purchased\"}";
+    /**
+     * There's no more static SKU to test purchasing with. To test this feature, the app must be
+     * set up in the Play console with the following product ID configured, with all the various
+     * rigamarole (signing, uploading, releasing to test users) that entails.
+     * <a href="https://developer.android.com/google/play/billing/test">More Information</a>
+     */
+    private static final String EXAMPLE_PRODUCT_ID = "tapstream_example.test";
 
-    public static final int BILLING_PURCHASE_REQUEST_CODE = 1001;
+    private ProductDetails exampleProductDetails;
 
-    public static final int BILLING_RESPONSE_RESULT_OK = 0;
-    public static final int BILLING_RESPONSE_RESULT_ITEM_ALREADY_OWNED = 7;
-
-
-    IInAppBillingService iabService;
     ArrayAdapter<CharSequence> ownedSkuListAdapter;
     Handler uiHandler;
 
-    ServiceConnection iabServiceConnection = new ServiceConnection() {
-        @Override
-        public void onServiceDisconnected(ComponentName name) {
-            iabService = null;
-        }
-
-        @Override
-        public void onServiceConnected(ComponentName name,
-                                       IBinder service) {
-            Log.d(TAG, "IAB Service Bound");
-            iabService = IInAppBillingService.Stub.asInterface(service);
-            refreshPurchaseList();
-        }
-    };
+    private BillingClient billingClient;
 
 
     @Override
@@ -68,206 +63,210 @@ public class PurchaseActivity extends AppCompatActivity {
 
         uiHandler = new Handler(Looper.getMainLooper());
 
+        billingClient = BillingClient.newBuilder(this)
+                .setListener(this)
+                .enablePendingPurchases()
+                .build();
+
+        billingClient.startConnection(this);
+
         // Setup the purchased SKU list
-        ListView ownedSkuList = (ListView)findViewById(R.id.listOwnedSKUs);
-        ownedSkuListAdapter = new ArrayAdapter<CharSequence>(this, android.R.layout.simple_list_item_1);
+        ownedSkuListAdapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1);
         ((ListView) findViewById(R.id.listOwnedSKUs)).setAdapter(ownedSkuListAdapter);
-
-        // Bind the IAB service
-        Intent serviceIntent = new Intent("com.android.vending.billing.InAppBillingService.BIND");
-        serviceIntent.setPackage("com.android.vending");
-        bindService(serviceIntent, iabServiceConnection, Context.BIND_AUTO_CREATE);
-
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        if (iabService != null) {
-            unbindService(iabServiceConnection);
+        if (billingClient != null) {
+            billingClient.endConnection();
         }
     }
 
+    @Override
+    public void onBillingServiceDisconnected() {
+        Log.i(TAG, "Billing service disconnected");
+    }
 
-    private void refreshPurchaseList(){
-        BackgroundWorkers.workers.submit(new Runnable() {
-            @Override
-            public void run() {
+    @Override
+    public void onBillingSetupFinished(BillingResult billingResult) {
+        Log.i(TAG, "Billing setup finished: " + billingResult);
+        if (billingResult.getResponseCode() == BillingResponseCode.OK) {
+            populateExampleProduct();
+            refreshPurchaseList();
+        }
+    }
 
-                final Bundle purchases;
+    private void populateExampleProduct() {
+        Product product = Product.newBuilder()
+                .setProductId(EXAMPLE_PRODUCT_ID)
+                .setProductType(BillingClient.ProductType.INAPP)
+                .build();
 
-                try {
-                    purchases = iabService.getPurchases(3, getPackageName(), "inapp", null);
-                } catch (RemoteException e) {
-                    Log.e(TAG, "Failed to get purchases", e);
-                    return;
-                }
+        List<Product> productList = Collections.singletonList(product);
 
-                int response = purchases.getInt("RESPONSE_CODE");
-                if (response != BILLING_RESPONSE_RESULT_OK) {
-                    Log.e(TAG, "Failed to get list purchases");
-                    return;
-                }
+        QueryProductDetailsParams queryProductDetailsParams = QueryProductDetailsParams.newBuilder()
+                 .setProductList(productList)
+                .build();
 
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        for (String sku : purchases.getStringArrayList("INAPP_PURCHASE_ITEM_LIST")){
-                            ownedSkuListAdapter.add(sku);
-                        }
-                    }
-                });
+        billingClient.queryProductDetailsAsync(queryProductDetailsParams, (billingResult, list) -> {
 
+            if (billingResult.getResponseCode() != BillingResponseCode.OK) {
+                Log.e(TAG, "Failed to list products: " + billingResult.getDebugMessage());
+                return;
             }
+
+            if (list.isEmpty()) {
+                Log.w(TAG, "Product not found: " + EXAMPLE_PRODUCT_ID);
+            }
+
+            list.forEach(item -> {
+                if (EXAMPLE_PRODUCT_ID.equals(item.getProductId())) {
+                    this.exampleProductDetails = item;
+                } else {
+                    Log.w(TAG, "Found unexpected product ID: " + item.getProductId());
+                }
+            });
+        });
+    }
+
+    private void refreshPurchaseList() {
+
+        if (!billingClient.isReady()) {
+            Log.e(TAG, "queryPurchases: BillingClient is not ready");
+            return;
+        }
+
+        billingClient.queryPurchasesAsync(QueryPurchasesParams.newBuilder()
+                .setProductType(BillingClient.ProductType.INAPP)
+                .build(), (billingResult, purchases) -> {
+
+            if (billingResult.getResponseCode() != BillingResponseCode.OK) {
+                Log.e(TAG, "Failed to list purchases");
+            }
+
+            runOnUiThread(() -> {
+                for (final Purchase p : purchases) {
+                    for (String sku : p.getProducts()) {
+                        ownedSkuListAdapter.add(sku);
+                    }
+                }
+            });
         });
     }
 
     /**
      * Follow the test purchase flow.
+     *
      * @param view
      */
-    public void onClickPurchase(View view){
-        BackgroundWorkers.workers.submit(new Runnable(){
-            @Override
-            public void run() {
-                try {
-                    Bundle buyIntentBundle = iabService.getBuyIntent(3, getPackageName(),
-                            "android.test.purchased", "inapp", "bGoa+V7g/yqDXvKRqq+JTFn4uQZbPiQJo4pf9RzJ");
-
-                    if (buyIntentBundle.getInt("RESPONSE_CODE") != BILLING_RESPONSE_RESULT_OK) {
-                        Log.e("Example", "Buy intent request failed: " + buyIntentBundle.toString());
-                        return;
-                    }
-
-                    PendingIntent pendingIntent = buyIntentBundle.getParcelable("BUY_INTENT");
-
-                    startIntentSenderForResult(pendingIntent.getIntentSender(),
-                            BILLING_PURCHASE_REQUEST_CODE, new Intent(), 0, 0, 0);
-
-                } catch (Exception e){
-                    Log.e(TAG, "Error during purchase", e);
-                }
-            }
-        });
-    }
-
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (requestCode == BILLING_PURCHASE_REQUEST_CODE) {
-            final String purchaseData = data.getStringExtra("INAPP_PURCHASE_DATA");
-            final String dataSignature = data.getStringExtra("INAPP_DATA_SIGNATURE");
-
-            if (resultCode == RESULT_OK) {
-                try {
-                    final JSONObject jo = new JSONObject(purchaseData);
-                    final String sku = jo.getString("productId");
-
-                    Event event = new Event(
-                            purchaseData,
-                            MOCK_SKU_DETAILS,
-                            dataSignature);
-
-                    Tapstream.getInstance().fireEvent(event);
-
-                    final Context ctx = this;
-                    runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            ownedSkuListAdapter.add(sku);
-                            final String msg = "Purchased: " + sku;
-                            Toast.makeText(ctx, msg, Toast.LENGTH_SHORT).show();
-                            Log.i(TAG, msg);
-                        }
-                    });
-
-                }
-                catch (JSONException e) {
-                    Log.e(TAG, "Failed to parse purchase data.", e);
-                }
-            }
-        }
-    }
-
-    /**
-     * Consumes all available purchases.
-     * @param view
-     */
-    public void onClickConsume(View view){
-        BackgroundWorkers.workers.submit(new Runnable() {
-            @Override
-            public void run() {
-                Bundle purchases;
-
-                try {
-                    purchases = iabService.getPurchases(3, getPackageName(), "inapp", null);
-                } catch (RemoteException e) {
-                    Log.e(TAG, "Failed to get purchases", e);
-                    return;
-                }
-                int response = purchases.getInt("RESPONSE_CODE");
-                if (response != BILLING_RESPONSE_RESULT_OK) {
-                    Log.e(TAG, "Failed to get list purchases");
-                    return;
-                }
-
-                ArrayList<String> ownedSkus =
-                        purchases.getStringArrayList("INAPP_PURCHASE_ITEM_LIST");
-                ArrayList<String>  purchaseDataList =
-                        purchases.getStringArrayList("INAPP_PURCHASE_DATA_LIST");
-                ArrayList<String>  signatureList =
-                        purchases.getStringArrayList("INAPP_DATA_SIGNATURE_LIST");
-
-
-                for (int i = 0; i < purchaseDataList.size(); ++i) {
-                    String purchaseData = purchaseDataList.get(i);
-                    String signature = signatureList.get(i);
-                    String sku = ownedSkus.get(i);
-
-                    try {
-                        JSONObject purchaseDataJson = new JSONObject(purchaseData);
-                        String token = purchaseDataJson.getString("purchaseToken");
-                        consumePurchase(sku, token);
-                    } catch (JSONException e){
-                        Log.e(TAG, "Error deserializing purchase data", e);
-                        return;
-                    }
-
-                }
-            }
-        });
-    }
-
-    private void consumePurchase(final String sku, final String token){
-        Log.i(TAG, "Consuming " + sku);
-
-        int consumeResponse;
-        try {
-             consumeResponse = iabService.consumePurchase(3, getPackageName(), token);
-        } catch (RemoteException e){
-            Log.e(TAG, "Failed to consume purchase", e);
+    public void onClickPurchase(View view) throws Exception {
+        if (this.exampleProductDetails == null) {
+            Log.e(TAG, "No product loaded. Are you running a valid release from Google Play?");
+            Toast.makeText(this, "No product found.", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        if (consumeResponse == BILLING_RESPONSE_RESULT_OK){
+        BillingFlowParams.ProductDetailsParams productDetailsParams =
+                BillingFlowParams.ProductDetailsParams.newBuilder()
+                        .setProductDetails(this.exampleProductDetails)
+                        .build();
 
+        List<BillingFlowParams.ProductDetailsParams> productDetailsParamsList =
+                Collections.singletonList(productDetailsParams);
+
+        BillingFlowParams billingFlowParams = BillingFlowParams.newBuilder()
+                .setProductDetailsParamsList(productDetailsParamsList)
+                .build();
+
+        BillingResult billingResult = billingClient.launchBillingFlow(this, billingFlowParams);
+
+        if (billingResult.getResponseCode() != BillingResponseCode.OK) {
+            Log.e(TAG, "Failed to launch billing flow");
+        }
+    }
+
+    @Override
+    public void onPurchasesUpdated(@NonNull BillingResult billingResult, @Nullable List<Purchase> purchases) {
+        if (billingResult.getResponseCode() != BillingResponseCode.OK || purchases == null) {
+            Log.e(TAG, "Error during purchase workflow: " + billingResult.getDebugMessage());
+            return;
+        }
+
+        for (Purchase purchase : purchases) {
+            for (String productSku : purchase.getProducts()) {
+                Event event = new Event(
+                        purchase.getOrderId(),
+                        productSku,
+                        purchase.getQuantity(),
+                        500,
+                        "USD"
+                );
+
+                event.setReceipt(purchase.getOriginalJson(), purchase.getSignature());
+                Tapstream.getInstance().fireEvent(event);
+            }
 
             final Context ctx = this;
-            runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    ownedSkuListAdapter.remove(sku);
-                    String msg = "Consumed: " + sku;
+            runOnUiThread(() -> {
+                for (String sku : purchase.getProducts()) {
+                    ownedSkuListAdapter.add(sku);
+                    final String msg = "Purchased: " + sku;
                     Toast.makeText(ctx, msg, Toast.LENGTH_SHORT).show();
                     Log.i(TAG, msg);
                 }
             });
 
-            return;
-        } else {
-            Log.e(TAG, "Failed to consume purchase: " + consumeResponse);
-            return;
         }
     }
 
 
+    /**
+     * Consumes all available purchases.
+     *
+     * @param view
+     */
+    public void onClickConsume(View view) {
+
+        if (!billingClient.isReady()) {
+            Log.e(TAG, "queryPurchases: BillingClient is not ready");
+            return;
+        }
+
+        billingClient.queryPurchasesAsync(QueryPurchasesParams.newBuilder()
+                .setProductType(BillingClient.ProductType.INAPP)
+                .build(), (billingResult, purchases) -> {
+
+            if (billingResult.getResponseCode() != BillingResponseCode.OK) {
+                Log.e(TAG, "Failed to list purchases");
+            }
+
+            for (Purchase purchase : purchases) {
+                consumePurchase(purchase);
+            }
+        });
+    }
+
+    private void consumePurchase(final Purchase purchase) {
+        Log.i(TAG, "Consuming " + purchase.toString());
+
+        ConsumeParams consumeParams = ConsumeParams.newBuilder()
+                .setPurchaseToken(purchase.getPurchaseToken())
+                .build();
+
+        billingClient.consumeAsync(consumeParams, ((billingResult, purchaseToken) -> {
+            if (billingResult.getResponseCode() != BillingResponseCode.OK) {
+                Log.e(TAG, "Failed to consume purchase: " + billingResult.getDebugMessage());
+            }
+
+            runOnUiThread(() -> {
+                for (String sku : purchase.getProducts()) {
+                    ownedSkuListAdapter.remove(sku);
+                    String msg = "Consumed: " + sku;
+                    Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
+                    Log.i(TAG, msg);
+                }
+            });
+        }));
+    }
 }
